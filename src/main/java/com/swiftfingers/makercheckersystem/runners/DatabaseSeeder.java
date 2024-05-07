@@ -121,16 +121,16 @@ public class DatabaseSeeder {
 
         List<RoleAuthority> roleAuths = Arrays.asList(
 
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_CREATE_USER")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_ASSIGN_USER")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_DELETE_USER")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_VIEW_USER")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_EDIT_USER")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_CREATE_USER")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_ASSIGN_USER")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_DELETE_USER")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_VIEW_USER")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_EDIT_USER")).build(),
 
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_CREATE_ROLE")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_EDIT_ROLE")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_VIEW_ROLE")).build(),
-                RoleAuthority.builder().role(rootRole).authority(permissionRepository.findPermissionByCode("ROLE_DELETE_ROLE")).build()
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_CREATE_ROLE")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_EDIT_ROLE")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_VIEW_ROLE")).build(),
+                RoleAuthority.builder().role(rootRole).permission(permissionRepository.findPermissionByCode("ROLE_DELETE_ROLE")).build()
         );
 
         roleAuthorityRepository.saveAll(roleAuths);

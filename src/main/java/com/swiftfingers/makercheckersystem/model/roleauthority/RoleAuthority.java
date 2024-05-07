@@ -22,14 +22,14 @@ public class RoleAuthority extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auth_id", nullable = false)
-    private Permission authority;
+    private Permission permission;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     public RoleAuthority(Role role2, Permission a) {
-        this.authority = a;
+        this.permission = a;
         this.role = role2;
     }
 

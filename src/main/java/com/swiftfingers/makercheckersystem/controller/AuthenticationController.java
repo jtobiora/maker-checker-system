@@ -3,6 +3,7 @@ package com.swiftfingers.makercheckersystem.controller;
 import com.swiftfingers.makercheckersystem.payload.request.LoginRequest;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
+import com.swiftfingers.makercheckersystem.payload.response.AuthenticationResponse;
 import com.swiftfingers.makercheckersystem.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class AuthenticationController {
 //    }
 
     @PostMapping("/login")
-    public ResponseEntity <AppResponse> authenticate (@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity <AuthenticationResponse> authenticate (@Valid final @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authenticationService.authenticate(loginRequest));
     }
 

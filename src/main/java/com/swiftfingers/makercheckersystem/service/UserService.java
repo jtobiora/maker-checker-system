@@ -30,5 +30,9 @@ public class UserService {
         return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
+    public User findByUserNameOrEmail (String userName, String email) {
+        return userRepository.findByUsernameOrEmail(userName, email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
 
 }

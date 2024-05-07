@@ -1,11 +1,13 @@
 package com.swiftfingers.makercheckersystem.security;
 
+import lombok.Data;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
-public class AppAuth implements Authentication {
+@Data
+public class AuthPrincipal implements Authentication {
     private String token;
     private boolean authenticated;
     private Collection<GrantedAuthority> authorities;
