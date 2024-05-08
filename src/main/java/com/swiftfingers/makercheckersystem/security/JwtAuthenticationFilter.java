@@ -1,10 +1,7 @@
 package com.swiftfingers.makercheckersystem.security;
 
-import com.google.gson.Gson;
-import com.swiftfingers.makercheckersystem.enums.Errors;
-import com.swiftfingers.makercheckersystem.exceptions.ErrorDetails;
+import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
-import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.service.AuthenticationService;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
 import com.swiftfingers.makercheckersystem.service.redis.TokenCacheService;
@@ -14,7 +11,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,11 +19,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +33,6 @@ import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService tokenProvider;
-    public static final String TOKEN_HEADER = "Authorization";
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthenticationService authService;
     private final SessionManager sessionManager;
@@ -59,9 +52,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //is the user token valid
-        if (!tokenCacheService.isValidUserToken(authToken, subject.getSessionId())) {
+        if (!tokenCacheService.isValidUserToken(subject.getSessionId())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().print(Utils.toJson(buildResponse(Errors.EXPIRED_TOKEN.getValue(), HttpStatus.FORBIDDEN.value(), null)));
+            response.getWriter().print(Utils.toJson(buildResponse(Message.EXPIRED_TOKEN.getValue(), HttpStatus.FORBIDDEN.value(), null)));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
             return;
@@ -70,10 +63,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //Does the user have a valid session
         if (sessionManager.isSessionExpired(request)) {
             tokenCacheService.deleteUserToken(subject.getSessionId()); //destroy the token and remove from redis
-            tokenCacheService.setUserAsNotLogged(subject.getEmail()); //destroy user login status
-            buildResponse(Errors.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null);
+            buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().print(Utils.toJson(buildResponse(Errors.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null)));
+            response.getWriter().print(Utils.toJson(buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null)));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
             return;

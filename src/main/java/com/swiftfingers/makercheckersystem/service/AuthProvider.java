@@ -23,7 +23,8 @@ public class AuthProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication auth) throws AuthenticationException {
         if (auth.isAuthenticated()) {
-            log.debug("Already authenticated. return same");
+            log.info("Already authenticated. return same");
+            return auth;
         }
 
         String username = auth.getName();

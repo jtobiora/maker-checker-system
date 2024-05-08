@@ -79,13 +79,11 @@ public class AuthenticationService {
        //start a session in redis
        tokenCacheService.saveUserToken(sessionId, token);
 
-       //set user as logged in
-       tokenCacheService.setUserAsLogged(userFound.getEmail(), sessionId);
-
        recreateAuthentication(authPrincipal, token, grantedAuthorities);
 
        return AuthenticationResponse.builder().auth(authPrincipal).token(token).authorities(authorities).build();
    }
+
 
     public void recreateAuthentication(AuthPrincipal auth, String token, Set<GrantedAuthority> authorities) {
         auth.setAuthorities(authorities);

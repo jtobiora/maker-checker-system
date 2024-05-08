@@ -1,6 +1,5 @@
 package com.swiftfingers.makercheckersystem.service.redis;
 
-import com.swiftfingers.makercheckersystem.service.sessions.SessionManager;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,7 @@ public class TokenCacheService {
         hashOperations = redisTemplate.opsForHash();
     }
 
-    public Object findUserToken(String sessionId, String userToken) {
+    public Object findUserToken(String sessionId) {
         return hashOperations.get(KEY+sessionId, sessionId);
     }
 
@@ -46,23 +45,9 @@ public class TokenCacheService {
         return true;
     }
 
-    public boolean setUserAsLogged(String username, String sessionId) {
-        hashOperations.put(KEY+username, username, sessionId);
-        redisTemplate.expire(KEY+username, tokenTimeout, TimeUnit.DAYS);
-        return true;
-    }
-
-    public void setUserAsNotLogged(String username) {
-        hashOperations.delete(KEY+username, username);
-    }
-
-    public boolean isValidUserToken(String userToken, String sessionId) {
-        Object token = this.findUserToken(sessionId, userToken);
+    public boolean isValidUserToken(String sessionId) {
+        Object token = this.findUserToken(sessionId);
         return token != null;
-    }
-
-    public void deleteUserToken(String userToken, String sessionId) {
-        hashOperations.delete(KEY+sessionId, userToken);
     }
 
     public void deleteUserToken(String sessionId) {

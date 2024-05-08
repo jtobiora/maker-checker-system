@@ -1,15 +1,17 @@
 package com.swiftfingers.makercheckersystem.enums;
 
-public enum Errors {
+public enum Message {
     EXPIRED_SESSION("Your Session has expired."),
     EXPIRED_TOKEN("The token has expired."),
     UNKNOWN_USER("The user is not known."),
     UNAUTHORIZED("User has not been authorized!."),
-    NOT_PERMITTED("Permission not granted.");
+    NOT_PERMITTED("Permission not granted."),
+
+    LOGOUT_MSG("User is successfully logged out.");
 
     private String value;
 
-    private Errors(String value) {
+    private Message(String value) {
         this.value = value;
     }
 
