@@ -28,12 +28,9 @@ public class AuthProvider implements AuthenticationProvider {
 
         String username = auth.getName();
         String password = String.valueOf(auth.getCredentials());
-
         User userFound = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         passwordManager.checkPassword(password, userFound);
-
-        return new UsernamePasswordAuthenticationToken(userFound, password, null);
+        return new UsernamePasswordAuthenticationToken(userFound, password);
     }
 
     @Override

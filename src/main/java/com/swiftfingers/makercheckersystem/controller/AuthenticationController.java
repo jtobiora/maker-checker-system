@@ -5,14 +5,17 @@ import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.payload.response.AuthenticationResponse;
 import com.swiftfingers.makercheckersystem.service.AuthenticationService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
@@ -23,8 +26,9 @@ public class AuthenticationController {
 //    }
 
     @PostMapping("/login")
-    public ResponseEntity <AuthenticationResponse> authenticate (@Valid final @RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok(authenticationService.authenticate(loginRequest));
+    public ResponseEntity <AuthenticationResponse> authenticate (@Valid final @RequestBody LoginRequest loginRequest, HttpSession httpSession) {
+        log.info("Authenticating users {} for session {}", loginRequest.getEmail(), httpSession.getId());
+        return ResponseEntity.ok(authenticationService.authenticate(loginRequest, httpSession.getId()));
     }
 
 

@@ -1,73 +1,95 @@
 package com.swiftfingers.makercheckersystem.security;
 
+import com.google.gson.Gson;
+import com.swiftfingers.makercheckersystem.enums.Errors;
+import com.swiftfingers.makercheckersystem.exceptions.ErrorDetails;
+import com.swiftfingers.makercheckersystem.payload.JwtSubject;
+import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
+import com.swiftfingers.makercheckersystem.service.AuthenticationService;
+import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
+import com.swiftfingers.makercheckersystem.service.redis.TokenCacheService;
+import com.swiftfingers.makercheckersystem.service.sessions.SessionManager;
+import com.swiftfingers.makercheckersystem.utils.Utils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 
 @RequiredArgsConstructor
 @Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider tokenProvider;
-
+    private final JwtTokenService tokenProvider;
+    public static final String TOKEN_HEADER = "Authorization";
     private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationService authService;
+    private final SessionManager sessionManager;
+    private final TokenCacheService tokenCacheService;
+    private final JwtTokenService tokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-//        try {
-//            if (request.getServletPath().contains("/api/v1/auth")) {
-//                filterChain.doFilter(request, response);
-//                return;
-//            }
-//
-//            String authHeader = request.getHeader("Authorization");
-//
-//            if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-//                filterChain.doFilter(request,response);
-//                return;
-//            }
-//
-//            String jwt = getJwtFromRequest(request);
-//
-//            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-//                Long userId = tokenProvider.getUserIdFromJWT(jwt);
-//
-//                /*
-//                    Note that you could also encode the user's username and roles inside JWT claims
-//                    and create the UserDetails object by parsing those claims from the JWT.
-//                    That would avoid the following database hit. It's completely up to you.
-//                 */
-//                UserDetails userDetails = customUserDetailsService.loadUserById(userId);
-//                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//
-//                SecurityContextHolder.getContext().setAuthentication(authentication);
-//            }
-//        } catch (Exception ex) {
-//            logger.error("Could not set user authentication in security context", ex);
-//        }
+
+        String authToken = tokenService.getJwtFromRequest(request);
+        JwtSubject subject = tokenProvider.getDetailsFromToken(authToken);
+
+        //is the user authenticated?
+        if (subject == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        //is the user token valid
+        if (!tokenCacheService.isValidUserToken(authToken, subject.getSessionId())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().print(Utils.toJson(buildResponse(Errors.EXPIRED_TOKEN.getValue(), HttpStatus.FORBIDDEN.value(), null)));
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+            return;
+        }
+
+        //Does the user have a valid session
+        if (sessionManager.isSessionExpired(request)) {
+            tokenCacheService.deleteUserToken(subject.getSessionId()); //destroy the token and remove from redis
+            tokenCacheService.setUserAsNotLogged(subject.getEmail()); //destroy user login status
+            buildResponse(Errors.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().print(Utils.toJson(buildResponse(Errors.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null)));
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+            return;
+        }
+
+        //continue processing
+        AuthPrincipal auth = new AuthPrincipal();
+        Set<GrantedAuthority> galist = new HashSet<>();
+        if (!ObjectUtils.isEmpty(subject.getAuthorities())) {
+            for (String per : subject.getAuthorities().split(",")) {
+                galist.add(new SimpleGrantedAuthority(per));
+            }
+        }
+
+        authService.recreateAuthentication(auth, authToken, galist);
 
         filterChain.doFilter(request, response);
-    }
-
-    private String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7, bearerToken.length());
-        }
-        return null;
     }
 }

@@ -6,10 +6,11 @@ import org.springframework.session.web.context.AbstractHttpSessionApplicationIni
 
 /**
  * With this configuration, sessions will expire after 10 minutes of inactivity, and session attributes will be stored
- * in Redis under the namespace "app_user_session".
+ * in Redis under the namespace "user-session".
  * ***/
+
 @Configuration
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 600, redisNamespace = "app-user-session")
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 600, redisNamespace = "user-session")
 public class SessionConfig extends AbstractHttpSessionApplicationInitializer {
 
 }

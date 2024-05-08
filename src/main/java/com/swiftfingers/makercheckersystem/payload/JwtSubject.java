@@ -6,13 +6,14 @@ import lombok.Data;
 @Data
 public class JwtSubject {
     private long tokenCreation;
-    private String username;
+    private String email;
     private String authorities;
+    private String sessionId;
 
 
-    public JwtSubject(String username, String authorities) {
-        Assert.notNull(username, "cannot create a JwtSubject without a username");
-        this.username = username;
+    public JwtSubject(String email, String authorities) {
+        Assert.notNull(email, "cannot create a JwtSubject without an email");
+        this.email = email;
         this.authorities = authorities;
         this.tokenCreation = System.currentTimeMillis();
     }

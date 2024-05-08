@@ -11,7 +11,8 @@ import com.swiftfingers.makercheckersystem.payload.response.AuthenticationRespon
 import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRoleRepository;
 import com.swiftfingers.makercheckersystem.security.AuthPrincipal;
-import com.swiftfingers.makercheckersystem.security.JwtTokenProvider;
+import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
+import com.swiftfingers.makercheckersystem.service.redis.TokenCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,14 +33,15 @@ public class AuthenticationService {
     private final AuthProvider authProvider;
     private final UserRoleRepository userRoleRepository;
     private final RoleAuthorityRepository roleAuthorityRepository;
-    private final JwtTokenProvider tokenProvider;
+    private final JwtTokenService tokenProvider;
+    private final TokenCacheService tokenCacheService;
 
    public AppResponse registerUser (SignUpRequest request) {
        return null;
    }
 
 
-   public AuthenticationResponse authenticate (LoginRequest loginRequest) {
+   public AuthenticationResponse authenticate (LoginRequest loginRequest, String sessionId) {
 
        //Authenticate the user request - email and password
        Authentication authentication = authProvider.authenticate(
@@ -69,9 +71,16 @@ public class AuthenticationService {
 
        String authorities = permissionCodeList.isEmpty() ? "" : String.join(",", permissionCodeList);
 
-       JwtSubject jwtSubject = new JwtSubject(userFound.getUsername(), authorities);
+       JwtSubject jwtSubject = new JwtSubject(userFound.getEmail(), authorities);
 
-       String token = tokenProvider.generateToken(jwtSubject);
+       //generate a token
+       String token = tokenProvider.generateToken(jwtSubject, sessionId);
+
+       //start a session in redis
+       tokenCacheService.saveUserToken(sessionId, token);
+
+       //set user as logged in
+       tokenCacheService.setUserAsLogged(userFound.getEmail(), sessionId);
 
        recreateAuthentication(authPrincipal, token, grantedAuthorities);
 
