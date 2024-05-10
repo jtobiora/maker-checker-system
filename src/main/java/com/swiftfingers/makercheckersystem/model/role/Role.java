@@ -1,5 +1,7 @@
 package com.swiftfingers.makercheckersystem.model.role;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import jakarta.persistence.*;
@@ -39,6 +41,11 @@ public class Role extends BaseEntity {
 
     @Column(name = "role_code", nullable = false, updatable = false ,unique = true)
     private String roleCode;
+
+    @JsonIgnore
+    @Column(name = "owner_username", nullable = false, updatable = false ,unique = true)
+    private String ownerUserName;
+
 
     @Transient
     private List<Permission> permissions = new ArrayList<>();

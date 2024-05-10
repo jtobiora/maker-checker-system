@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -37,6 +38,8 @@ public class JwtTokenService {
     static final String CLAIM_KEY_GRANT = "grant";
     static final String SESSION_ID = "sess";
 
+    static final String CLAIM_KEY_GRANTED_AUTH = "grant_auth";
+
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -48,7 +51,9 @@ public class JwtTokenService {
         claims.put(CLAIM_KEY_SUB, subject.getEmail());
         claims.put(CLAIM_KEY_CREATED, subject.getTokenCreation());
         claims.put(CLAIM_KEY_GRANT, subject.getAuthorities());
+        claims.put(CLAIM_KEY_GRANTED_AUTH, subject.getGrantedAuthorities());
         claims.put(SESSION_ID, sessionId);
+
         return doGenerateToken(claims, null, this.jwtSecret);
     }
 
@@ -86,6 +91,7 @@ public class JwtTokenService {
             JwtSubject subject = new JwtSubject(username, authorities);
             subject.setTokenCreation((Long) claims.get(CLAIM_KEY_CREATED));
             subject.setSessionId((String)claims.get(SESSION_ID));
+            subject.setGrantedAuthorities((Collection<? extends GrantedAuthority>) claims.get(CLAIM_KEY_GRANTED_AUTH));
             return subject;
         } catch (Exception e) {
             log.error("Exception getting details from token {} ", token, e);

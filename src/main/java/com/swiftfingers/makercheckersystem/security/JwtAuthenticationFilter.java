@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.security;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
 import com.swiftfingers.makercheckersystem.service.AuthenticationService;
@@ -15,15 +16,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 
@@ -59,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
             return;
         }
-
+//
         //Does the user have a valid session
         if (sessionManager.isSessionExpired(request)) {
             tokenCacheService.deleteUserToken(subject.getSessionId()); //destroy the token and remove from redis
@@ -72,16 +75,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //continue processing
-        AuthPrincipal auth = new AuthPrincipal();
-        Set<GrantedAuthority> galist = new HashSet<>();
+        String userName = subject.getEmail();
+        Set<GrantedAuthority> grantedAuthList = new HashSet<>();
         if (!ObjectUtils.isEmpty(subject.getAuthorities())) {
             for (String per : subject.getAuthorities().split(",")) {
-                galist.add(new SimpleGrantedAuthority(per));
+                grantedAuthList.add(new SimpleGrantedAuthority(per));
             }
         }
 
-        authService.recreateAuthentication(auth, authToken, galist);
+         //initializing UsernamePasswordAuthenticationToken with its 3 parameter constructor
+         //because it sets super.setAuthenticated(true); in that constructor.
+        UsernamePasswordAuthenticationToken upassToken =
+                new UsernamePasswordAuthenticationToken(userName, null, grantedAuthList);
+        upassToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+        // finally, give the authentication token to Spring Security Context
+        SecurityContextHolder.getContext().setAuthentication(upassToken);
 
         filterChain.doFilter(request, response);
     }
+
 }

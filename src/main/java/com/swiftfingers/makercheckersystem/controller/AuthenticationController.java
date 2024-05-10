@@ -1,6 +1,8 @@
 package com.swiftfingers.makercheckersystem.controller;
 
 import com.swiftfingers.makercheckersystem.payload.request.LoginRequest;
+import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
+import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.payload.response.AuthenticationResponse;
 import com.swiftfingers.makercheckersystem.service.AuthenticationService;
 import jakarta.servlet.http.HttpSession;
@@ -21,22 +23,13 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-//    @PostMapping("/register")
-//    public ResponseEntity <AppResponse> createUser (@Valid @RequestBody SignUpRequest signUpRequest) {
-//        return ResponseEntity.ok(authenticationService.registerUser(signUpRequest));
-//    }
-
     @PostMapping("/login")
     public ResponseEntity <AuthenticationResponse> signIn (@Valid final @RequestBody LoginRequest loginRequest, HttpSession httpSession) {
         log.info("Authenticating user ... {}", loginRequest.getEmail());
         return ResponseEntity.ok(authenticationService.authenticate(loginRequest, httpSession.getId()));
     }
 
-//    @PostMapping("/logout")
-//    public ResponseEntity <AuthenticationResponse> logout (@RequestHeader(TOKEN_HEADER) String token) {
-//        log.info("Logging out user... ");
-//        return ResponseEntity.ok(authenticationService.authenticate(loginRequest, httpSession.getId()));
-//    }
+
 
 
 }

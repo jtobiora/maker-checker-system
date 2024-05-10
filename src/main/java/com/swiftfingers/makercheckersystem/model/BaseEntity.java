@@ -1,9 +1,9 @@
 package com.swiftfingers.makercheckersystem.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -30,13 +30,21 @@ public abstract class BaseEntity implements Serializable {
     private LocalDateTime updatedAt;
 
     @CreatedBy
-    private Long createdBy;
+    private String createdBy;
 
     @LastModifiedBy
-    private Long updatedBy;
+    private String updatedBy;
 
     @Column(name = "active", nullable = false)
     private boolean active;
+
+    @JsonIgnore
+    @Lob
+    @Column(name = "jsonData")
+    private String jsonData;
+
+    @Enumerated(EnumType.STRING)
+    private AuthorizationStatus authorizationStatus;
 
 }
 

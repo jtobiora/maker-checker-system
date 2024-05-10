@@ -1,17 +1,21 @@
 package com.swiftfingers.makercheckersystem.audits;
 
+import com.swiftfingers.makercheckersystem.security.AuthPrincipal;
 import com.swiftfingers.makercheckersystem.security.UserPrincipal;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
 
-public class ApplicationAuditAware implements AuditorAware<Long> {
+public class SpringSecurityAuditAwareImpl implements AuditorAware<String> {
+
     @Override
-    public Optional<Long> getCurrentAuditor() {
+    public Optional<String> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
 
         if (authentication == null ||
                 !authentication.isAuthenticated() ||
@@ -19,9 +23,10 @@ public class ApplicationAuditAware implements AuditorAware<Long> {
             return Optional.empty();
         }
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
 
-        return Optional.ofNullable(userPrincipal.getId());
+        return Optional.of((String) principal);
+
+
     }
 }
-

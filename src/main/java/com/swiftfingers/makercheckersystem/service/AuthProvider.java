@@ -1,15 +1,25 @@
 package com.swiftfingers.makercheckersystem.service;
 
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
+import com.swiftfingers.makercheckersystem.model.permissions.Permission;
+import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.user.User;
+import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
+import com.swiftfingers.makercheckersystem.repository.RoleRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
+import com.swiftfingers.makercheckersystem.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 @Slf4j
 @Component
@@ -18,6 +28,9 @@ public class AuthProvider implements AuthenticationProvider {
 
     private final UserRepository userRepository;
     private final PasswordManager passwordManager;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RoleAuthorityRepository roleAuthorityRepository;
 
 
     @Override
@@ -27,16 +40,50 @@ public class AuthProvider implements AuthenticationProvider {
             return auth;
         }
 
+        UsernamePasswordAuthenticationToken authenticationToken = null;
         String username = auth.getName();
         String password = String.valueOf(auth.getCredentials());
         User userFound = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         passwordManager.checkPassword(password, userFound);
-        return new UsernamePasswordAuthenticationToken(userFound, password);
+
+        Map<String, Object> authMap = getGrantedAuthorities(userFound);
+        Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>) authMap.get("grantedAuth");
+
+        authenticationToken = new UsernamePasswordAuthenticationToken(
+                new org.springframework.security.core.userdetails.User(username, password, grantedAuthorities), password, grantedAuthorities);
+
+        authenticationToken.setDetails(authMap.get("authString"));
+        return authenticationToken;
     }
 
     @Override
     public boolean supports(Class<?> authenticationType) {
         return UsernamePasswordAuthenticationToken.class.equals(authenticationType);
+    }
+
+    private Map<String, Object> getGrantedAuthorities(User userFound) {
+        Map<String, Object> objectMap = new HashMap<>();
+        List<Role> roles = userRoleRepository.findAllRolesByUserId(userFound.getId());
+
+        Set<String> permissionCodeList = new HashSet<>();
+        Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
+
+        // load user Authorities into GrantedAuthority
+        if (!ObjectUtils.isEmpty(roles)) {
+            for (Role role : roles) {
+                List<Permission> authorities = roleAuthorityRepository.findAllPermissionsByRoleId(role.getId());
+                for (Permission permission : authorities) {
+                    permissionCodeList.add(permission.getCode());
+                    grantedAuthorities.add(new SimpleGrantedAuthority(permission.getCode()));
+                }
+            }
+        }
+
+        String authorities = permissionCodeList.isEmpty() ? "" : String.join(",", permissionCodeList);
+
+        objectMap.put("authString", authorities);
+        objectMap.put("grantedAuth", grantedAuthorities);
+        return objectMap;
     }
 
 }

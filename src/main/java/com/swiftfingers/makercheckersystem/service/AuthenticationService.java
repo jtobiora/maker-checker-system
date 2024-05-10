@@ -1,8 +1,6 @@
 package com.swiftfingers.makercheckersystem.service;
 
-import com.swiftfingers.makercheckersystem.model.permissions.Permission;
-import com.swiftfingers.makercheckersystem.model.role.Role;
-import com.swiftfingers.makercheckersystem.model.user.User;
+import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
 import com.swiftfingers.makercheckersystem.payload.request.LoginRequest;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
@@ -17,13 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -36,53 +31,45 @@ public class AuthenticationService {
     private final JwtTokenService tokenProvider;
     private final TokenCacheService tokenCacheService;
 
-   public AppResponse registerUser (SignUpRequest request) {
-       return null;
-   }
+    public AppResponse registerUser(SignUpRequest request) {
+        return null;
+    }
 
 
-   public AuthenticationResponse authenticate (LoginRequest loginRequest, String sessionId) {
+    public AuthenticationResponse authenticate(LoginRequest loginRequest, String sessionId) {
 
-       //Authenticate the user request - email and password
-       Authentication authentication = authProvider.authenticate(
-               new UsernamePasswordAuthenticationToken(
-                       loginRequest.getEmail(),
-                       loginRequest.getPassword()
-               )
-       );
+       /*Creating UsernamePasswordAuthenticationToken object to send it to authentication manager.Attention! We used two parameters
+        constructor. It sets authentication false by doing this.setAuthenticated(false);
+        */
+        UsernamePasswordAuthenticationToken authToken = new
+                UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-       AuthPrincipal authPrincipal = new AuthPrincipal();
-       User userFound = (User)authentication.getPrincipal();
-       List<Role> roles = userRoleRepository.findAllRolesByUserId(userFound.getId());
+        //we let the custom authentication manager do its work
+        Authentication auth = authProvider.authenticate(authToken);
 
-       Set<String> permissionCodeList = new HashSet<>();
-       Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
+        if (auth.isAuthenticated()) {
+            String authoritiesString =  (String) auth.getDetails();
+            SecurityContextHolder.getContext().setAuthentication(auth);
 
-       // load user Authorities into GrantedAuthority
-       if (!ObjectUtils.isEmpty(roles)) {
-           for (Role role : roles) {
-               List<Permission> authorities = roleAuthorityRepository.findAllPermissionsByRoleId(role.getId());
-               for (Permission permission : authorities) {
-                   permissionCodeList.add(permission.getCode());
-                   grantedAuthorities.add(new SimpleGrantedAuthority(permission.getCode()));
-               }
-           }
-       }
+            UserDetails principal = (UserDetails) auth.getPrincipal();
 
-       String authorities = permissionCodeList.isEmpty() ? "" : String.join(",", permissionCodeList);
+            String userName = ((UserDetails) auth.getPrincipal()).getUsername();
 
-       JwtSubject jwtSubject = new JwtSubject(userFound.getEmail(), authorities);
+            JwtSubject jwtSubject = new JwtSubject(userName, authoritiesString);
 
-       //generate a token
-       String token = tokenProvider.generateToken(jwtSubject, sessionId);
+            //generate a token
+            String token = tokenProvider.generateToken(jwtSubject, sessionId);
 
-       //start a session in redis
-       tokenCacheService.saveUserToken(sessionId, token);
+            //start a session in redis
+            tokenCacheService.saveUserToken(sessionId, token);
 
-       recreateAuthentication(authPrincipal, token, grantedAuthorities);
 
-       return AuthenticationResponse.builder().auth(authPrincipal).token(token).authorities(authorities).build();
-   }
+            return AuthenticationResponse.builder().token(token).authorities(String.valueOf(principal.getAuthorities())).build();
+        }
+
+        throw new BadRequestException("User could not be authenticated");
+
+    }
 
 
     public void recreateAuthentication(AuthPrincipal auth, String token, Set<GrantedAuthority> authorities) {

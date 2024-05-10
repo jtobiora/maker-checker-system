@@ -11,7 +11,7 @@ public class AuthPrincipal implements Authentication {
     private String token;
     private boolean authenticated;
     private Collection<GrantedAuthority> authorities;
-    private Object details;
+    private Long userId;
     private String roles;
 
     @Override

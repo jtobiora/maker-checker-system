@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.service;
 
+import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.model.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,7 +16,7 @@ public class PasswordManager {
         boolean passwordMatched = passwordEncoder.matches(rawPassword, user.getPassword());
 
         if (!passwordMatched) {
-            throw new BadCredentialsException("Incorrect username or password!");
+            throw new ResourceNotFoundException("Incorrect username or password!");
         }
     }
 }
