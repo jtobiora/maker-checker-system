@@ -29,11 +29,4 @@ public class Utils {
                 .errors(errors)
                 .build();
     }
-
-    public static <T> T fromJson(String json, Class<T> clazz) throws JsonProcessingException {
-        return objectMapper.readValue(json, clazz);
-    }
-    public static String toJson(Object object) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(object);
-    }
 }

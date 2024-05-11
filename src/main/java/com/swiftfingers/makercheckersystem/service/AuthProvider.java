@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.CHANGE_PASSWORD_MSG;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -44,6 +46,16 @@ public class AuthProvider implements AuthenticationProvider {
         String username = auth.getName();
         String password = String.valueOf(auth.getCredentials());
         User userFound = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        //first time login user -- prompt for password change
+        if (userFound.isFirstTimeLogin()) {
+            authenticationToken =
+                    new UsernamePasswordAuthenticationToken(username, password);
+            authenticationToken.setDetails(CHANGE_PASSWORD_MSG);
+
+            return authenticationToken;
+        }
+
         passwordManager.checkPassword(password, userFound);
 
         Map<String, Object> authMap = getGrantedAuthorities(userFound);

@@ -24,15 +24,19 @@ import java.time.LocalDateTime;
 public abstract class BaseEntity implements Serializable {
 
     @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @CreatedBy
+    @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;
 
     @LastModifiedBy
+    @Column(name = "updated_by", nullable = false, updatable = false)
     private String updatedBy;
 
     @Column(name = "active", nullable = false)

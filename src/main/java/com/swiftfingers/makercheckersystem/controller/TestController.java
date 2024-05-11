@@ -1,6 +1,9 @@
 package com.swiftfingers.makercheckersystem.controller;
 
+import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
+import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -14,7 +17,8 @@ public class TestController {
     private final TestRepository testRepository;
 
     @PostMapping("/test")
-    //@Secured("ROLE_CREATE_USER")
+    @Secured("ROLE_CREATE_USER")
+    @CreateOperation
 //    @PreAuthorize("hasAnyRole('ROLE_CREATE_USER', 'ROLE_CREATE_ROLE')")
 //    @PreAuthorize("hasAnyAuthority('ROLE_ASSIGN_ROLE', 'ROLE_UPDATE_USER')")
 //    @PreAuthorize("hasAuthority('ROLE_DELETE_USER')")
@@ -28,9 +32,25 @@ public class TestController {
         return ResponseEntity.ok(testRepository.save(testUser));
     }
 
-    @GetMapping("/test2")
-    @Secured("ROLE_CREATE_USER")
-    public String testing () {
-        return "Testing endpoint";
+    @PutMapping("/test/{id}")
+    @Secured("ROLE_EDIT_USER")
+    @UpdateOperation
+    public ResponseEntity<TestUser> updateTest (@RequestBody SignUpRequest req,@PathVariable Long id) {
+
+        TestUser testUser = testRepository.findById(id).orElseThrow(null);
+        testUser.setName(req.getFirstName());
+        testUser.setEmail(req.getEmail());
+        testUser.setActive(false);
+        return ResponseEntity.ok(testRepository.save(testUser));
+    }
+
+
+
+    @DeleteMapping("/test/{id}")
+    @Secured("ROLE_DELETE_USER")
+    public String testing (@PathVariable Long id) {
+        TestUser testUser = testRepository.findById(id).orElseThrow(null);
+        testRepository.delete(testUser);
+        return "Deleted";
     }
 }

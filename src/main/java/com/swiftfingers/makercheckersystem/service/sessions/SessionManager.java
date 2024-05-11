@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.service.sessions;
 
+import com.swiftfingers.makercheckersystem.service.redis.TokenCacheService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -19,6 +20,7 @@ public class SessionManager {
     private static final String KEY = "user-session:sessions:";
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final TokenCacheService tokenCacheService;
 
     private HashOperations hashOperations;
 
@@ -43,7 +45,7 @@ public class SessionManager {
         hashOperations.getOperations().delete(KEY+sessionId);
     }
 
-    public boolean isSessionExpired(HttpServletRequest request) {
+    public boolean isSessionExpired(HttpServletRequest request, String sessionId) {
         HttpSession session = request.getSession(false); // false means do not create a new session if it doesn't exist
         if (session != null) {
             long currentTime = System.currentTimeMillis();
@@ -54,7 +56,8 @@ public class SessionManager {
                 return true;
             } else {
                 // Update session time
-                session.setMaxInactiveInterval(maxInactiveInterval);
+                session.setMaxInactiveInterval(maxInactiveInterval); //update the session time
+                tokenCacheService.updateTokenTimeout(sessionId); //update token expiry time
                 return false;
             }
         }

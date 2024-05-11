@@ -9,7 +9,7 @@ import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleRepository;
-import com.swiftfingers.makercheckersystem.service.db.Crud;
+
 import com.swiftfingers.makercheckersystem.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +58,7 @@ public class RoleService {
 
         Role roleSaved = roleRepository.save(role);
 
-       // addPermissions(roleSaved, role.getPermissions());
+        addPermissions(roleSaved, role.getPermissions());
 
         return Utils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
     }

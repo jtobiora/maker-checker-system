@@ -3,6 +3,7 @@ package com.swiftfingers.makercheckersystem.config;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,14 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @RequiredArgsConstructor
+@ComponentScan(basePackages = {"com.swiftfingers.makercheckersystem"})
 public class ApplicationConfig {
 
     private final UserRepository repository;
-
-//    @Bean
-//    public AuditorAware<Long> auditorAware() {
-//        return new ApplicationAuditAware();
-//    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

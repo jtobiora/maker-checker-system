@@ -57,6 +57,9 @@ public class User extends BaseEntity {
     @Size(max = 100)
     private String password;
 
+    @Column(name = "first_login")
+    private boolean isFirstTimeLogin;
+
     @Transient
     private Set<Role> roles = new HashSet<>();
 

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.MAX_SESSION_IDLE_TIME_SECONDS;
+
 @Repository
 @Slf4j
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class TokenCacheService {
             return false;
         }
         hashOperations.put(KEY+sessionId, sessionId , userToken);
-        redisTemplate.expire(KEY+sessionId, tokenTimeout, TimeUnit.SECONDS);
+        updateTokenTimeout(sessionId); // Update token expiry time
         return true;
     }
 
@@ -50,10 +52,18 @@ public class TokenCacheService {
         return token != null;
     }
 
+    public void updateTokenTimeout(String sessionId) {
+        redisTemplate.expire(KEY + sessionId, MAX_SESSION_IDLE_TIME_SECONDS, TimeUnit.SECONDS);
+    }
+
+//    public void deleteUserToken(String sessionId) {
+//        Set keys = hashOperations.keys(KEY + sessionId);
+//        keys.forEach(o -> {
+//            hashOperations.delete(KEY + sessionId, o);
+//        });
+//    }
+
     public void deleteUserToken(String sessionId) {
-        Set keys = hashOperations.keys(KEY + sessionId);
-        keys.forEach(o -> {
-            hashOperations.delete(KEY + sessionId, o);
-        });
+        hashOperations.delete(KEY + sessionId, sessionId);
     }
 }

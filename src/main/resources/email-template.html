@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Token Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .header {
+            background-color: #f0f0f0;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .content {
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Verification Token Email</h2>
+    </div>
+    <div class="content">
+        <p>Dear User,</p>
+        <p>Your verification token is: <strong th:text="${token}"></strong></p>
+        <p>Regards,<br>The Team</p>
+    </div>
+    <div class="footer">
+        <p>This is an automated email. Please do not reply.</p>
+    </div>
+</div>
+</body>
+</html>

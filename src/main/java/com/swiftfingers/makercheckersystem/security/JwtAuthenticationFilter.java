@@ -28,6 +28,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.*;
 
+import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJson;
 import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 
 @RequiredArgsConstructor
@@ -57,18 +58,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //is the user token valid
         if (!tokenCacheService.isValidUserToken(subject.getSessionId())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().print(Utils.toJson(buildResponse(Message.EXPIRED_TOKEN.getValue(), HttpStatus.FORBIDDEN.value(), null)));
+            response.getWriter().print(toJson(buildResponse(Message.EXPIRED_TOKEN.getValue(), HttpStatus.FORBIDDEN.value(), null)));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
             return;
         }
 //
         //Does the user have a valid session
-        if (sessionManager.isSessionExpired(request)) {
+        if (sessionManager.isSessionExpired(request, subject.getSessionId())) {
             tokenCacheService.deleteUserToken(subject.getSessionId()); //destroy the token and remove from redis
             buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().print(Utils.toJson(buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null)));
+            response.getWriter().print(toJson(buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null)));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
             return;

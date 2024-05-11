@@ -1,6 +1,7 @@
 package com.swiftfingers.makercheckersystem.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -9,6 +10,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
+@ComponentScan(basePackages = {"com.swiftfingers.makercheckersystem"})
 public class RedisConfig {
 
     @Bean

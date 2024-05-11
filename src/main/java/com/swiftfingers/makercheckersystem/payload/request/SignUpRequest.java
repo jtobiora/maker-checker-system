@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.payload.request;
 
+import com.swiftfingers.makercheckersystem.audits.annotations.Sensitive;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Transient;
@@ -25,6 +26,7 @@ public class SignUpRequest {
 
     @NotBlank
     @Size(min = 6, max = 100)
+    @Sensitive
     private String password;
 
     @Size(max = 25, message = "FirstName cannot be more than 25")

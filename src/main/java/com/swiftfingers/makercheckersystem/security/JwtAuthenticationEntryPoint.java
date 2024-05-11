@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.List;
 
+import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJson;
+
 @Component
 @Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -28,7 +30,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         AppResponse appResponse = buildResponse(Message.UNAUTHORIZED.getValue(), HttpStatus.UNAUTHORIZED.value(), null);
         httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        httpServletResponse.getWriter().print(Utils.toJson(appResponse));
+        httpServletResponse.getWriter().print(toJson(appResponse));
         httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
         httpServletResponse.setHeader("Access-Control-Allow-Origin",httpServletRequest.getHeader("Origin"));
     }

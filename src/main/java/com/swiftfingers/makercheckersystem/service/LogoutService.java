@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJson;
 import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 
 @Service
@@ -53,7 +54,7 @@ public class LogoutService implements LogoutHandler {
 
         response.setStatus(HttpServletResponse.SC_OK);
         try {
-            response.getWriter().print(Utils.toJson(buildResponse(Message.LOGOUT_MSG.getValue(), HttpStatus.OK.value(), null)));
+            response.getWriter().print(toJson(buildResponse(Message.LOGOUT_MSG.getValue(), HttpStatus.OK.value(), null)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

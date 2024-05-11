@@ -5,9 +5,9 @@ import java.util.Arrays;
 
 public enum PermissionType {
 
-    BANK("Bank"), COR("Corporate"),
-    IND("Individual"),
-    ALL("All"), SA("Super Admin");
+    ADMIN("Admin"),
+    USER("User"),
+    ALL("All");
 
     PermissionType(String description) {
         this.description = description;
