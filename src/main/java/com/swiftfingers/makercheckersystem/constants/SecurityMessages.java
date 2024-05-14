@@ -12,6 +12,7 @@ public class SecurityMessages {
     public static final String _2FA_TOKEN_TIMEOUT = "";
     public static final String _2FA_TOKEN_ERR = "The token entered is incorrect.";
     public static final String _2FA_TOKEN_SUCCESS= "Enter the token sent to your %s";
+    public static final String _2FA_TOKEN_EXPIRED_ERR = "Token has expired and is invalid";
 
 
 

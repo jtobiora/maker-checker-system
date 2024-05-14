@@ -1,6 +1,5 @@
 package com.swiftfingers.makercheckersystem.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.swiftfingers.makercheckersystem.constants.SecurityMessages;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
@@ -15,17 +14,21 @@ import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.request.TwoFactorAuthRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.payload.response.AuthenticationResponse;
-import com.swiftfingers.makercheckersystem.repository.*;
+import com.swiftfingers.makercheckersystem.repository.PasswordHistoryRepository;
+import com.swiftfingers.makercheckersystem.repository.TokenRepository;
+import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.security.AuthPrincipal;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
-import com.swiftfingers.makercheckersystem.service.redis.TokenService;
+import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,13 +36,12 @@ import org.springframework.util.ObjectUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.CHANGE_PASSWORD_MSG;
+import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
+import static com.swiftfingers.makercheckersystem.utils.MapperUtils.fromJSON;
+import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJSON;
 import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 import static com.swiftfingers.makercheckersystem.utils.ValidationUtils.isValidPassword;
 
@@ -47,25 +49,25 @@ import static com.swiftfingers.makercheckersystem.utils.ValidationUtils.isValidP
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class AuthenticationService {
 
     private final AuthProvider authProvider;
-    private final UserRoleRepository userRoleRepository;
-    private final RoleAuthorityRepository roleAuthorityRepository;
     private final JwtTokenService tokenProvider;
-    private final TokenService tokenService;
+    private final LoginTokenService tokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordHistoryRepository historyRepository;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
+    private final TwoFaTokenService twoFaTokenService;
 
     public AppResponse registerUser(SignUpRequest request) {
         return null;
     }
 
 
-    public AuthenticationResponse authenticate(LoginRequest loginRequest, String sessionId) throws JsonProcessingException {
+    public AuthenticationResponse authenticate(LoginRequest loginRequest, String sessionId)  {
        /* Creating UsernamePasswordAuthenticationToken object to send it to authentication manager.Attention! We used two parameters
         constructor. It sets authentication false by doing this.setAuthenticated(false);
         */
@@ -93,17 +95,11 @@ public class AuthenticationService {
                 authPrincipal.setPrincipal((String)auth.getPrincipal());
 
                 //generate 2FA token and send to user's token destination
-                String _2faToken = tokenService.generate2FAToken(UUID.randomUUID().toString());
-                String strigifiedAuthObj = MapperUtils.toJson(authPrincipal);
+                String identifier = UUID.randomUUID().toString();
+                String strigifiedAuthObj = toJSON(authPrincipal);
                 String tokenPath = userAuthenticated.getTokenDestination().equals(TokenDestination.EMAIL) ? "email" : "phone number";
-                Token tokenBuilder = Token.builder()
-                        ._2faToken(_2faToken)
-                        .creationTime(Instant.now())
-                        .authPayload(strigifiedAuthObj)
-                        .destination(userAuthenticated.getTokenDestination())
-                        .build();
+                String _2faToken = twoFaTokenService.generateAndSaveToken(userAuthenticated.getEmail(),userAuthenticated.getTokenDestination(),identifier,strigifiedAuthObj);
 
-                tokenRepository.save(tokenBuilder);
 
                 //send token to user's email or phone
                 sendTokenToUser(userAuthenticated.getEmail(), _2faToken, userAuthenticated.getTokenDestination());
@@ -202,33 +198,6 @@ public class AuthenticationService {
         return buildResponse(HttpStatus.OK, String.format(SecurityMessages.TWO_FA_SET_UP, str), null);
     }
 
-//    private AuthenticationResponse completeAuthentication (Authentication auth, String sessionId) {
-//        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-//
-//        String authoritiesString = authorities.stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.joining(","));
-//
-//        //String authoritiesString =  (String) auth.getDetails();
-//
-//        SecurityContextHolder.getContext().setAuthentication(auth);
-//
-//        UserDetails principal = (UserDetails) auth.getPrincipal();
-//
-//        String userName = ((UserDetails) auth.getPrincipal()).getUsername();
-//
-//        JwtSubject jwtSubject = new JwtSubject(userName, authoritiesString);
-//
-//        //generate a token
-//        String token = tokenProvider.generateToken(jwtSubject, sessionId);
-//
-//        //save user token in redis
-//        tokenService.saveUserLoginToken(sessionId, token);
-//
-//
-//        return AuthenticationResponse.builder().token(token).authorities(String.valueOf(principal.getAuthorities())).build();
-//    }
-
     private void sendTokenToUser (String receiverEmail, String _2faToken, TokenDestination destination) {
         if (TokenDestination.EMAIL.equals(destination)) {
             //sending token using email
@@ -236,5 +205,60 @@ public class AuthenticationService {
         } else {
             //sending token using SMS
         }
+    }
+
+    public AuthenticationResponse confirm2FaToken(String tokenPassed, String email, String sessionId) {
+        User userFound = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND,"User")));
+
+        // Calculate the time threshold (1 minute ago). Token more than one minute ago is assumed expired
+        Instant timeThreshold = Instant.now().minusSeconds(60);
+        //retrive the token from the database
+        List<Token> tokens = tokenRepository.findTokensByLoginId(userFound.getEmail());
+
+        if(tokens.isEmpty()) {
+            throw new BadRequestException(_2FA_TOKEN_ERR);
+        }
+
+        Token composedToken = null;
+        for (Token toks : tokens) {
+            if (passwordEncoder.matches(tokenPassed, toks.get_2faToken())) {
+                //check if the token has expired or is invalid
+                if(!twoFaTokenService.is2FATokenValid(toks, tokenPassed)) {
+                    throw new BadRequestException(_2FA_TOKEN_EXPIRED_ERR);
+                } else {
+                    composedToken = toks;
+                    break;
+                }
+            }
+        }
+
+        if (!ObjectUtils.isEmpty(composedToken)) {
+            log.info("Authenticate the user and set information in the Security Context");
+            AuthPrincipal authPrincipal = fromJSON(composedToken.getAuthPayload(), AuthPrincipal.class);
+            Set<GrantedAuthority> grantedAuthList = new HashSet<>();
+            if (!ObjectUtils.isEmpty(authPrincipal.getAuthorities())) {
+                for (String per : authPrincipal.getAuthorities().split(",")) {
+                    grantedAuthList.add(new SimpleGrantedAuthority(per));
+                }
+            }
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(authPrincipal.getPrincipal(),authPrincipal.getCredentials(),grantedAuthList);
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            String userName = (String) authPrincipal.getPrincipal();
+
+            JwtSubject jwtSubject = new JwtSubject(userName, authPrincipal.getAuthorities());
+
+            //generate a token
+            String token = tokenProvider.generateToken(jwtSubject, sessionId);
+
+            //save user token in redis
+            tokenService.saveUserLoginToken(sessionId, token);
+
+            return AuthenticationResponse.builder().token(token).authorities(authPrincipal.getAuthorities()).build();
+        }
+
+        return null;
     }
 }

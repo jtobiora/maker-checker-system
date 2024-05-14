@@ -3,7 +3,7 @@ package com.swiftfingers.makercheckersystem.service;
 import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
-import com.swiftfingers.makercheckersystem.service.redis.TokenService;
+import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJson;
+import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJSON;
 import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 
 @Service
@@ -25,7 +25,7 @@ import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 public class LogoutService implements LogoutHandler {
 
     private final JwtTokenService tokenService;
-    private final TokenService tokenCacheService;
+    private final LoginTokenService tokenCacheService;
 
     @Override
     public void logout(
@@ -53,7 +53,7 @@ public class LogoutService implements LogoutHandler {
 
         response.setStatus(HttpServletResponse.SC_OK);
         try {
-            response.getWriter().print(toJson(buildResponse(Message.LOGOUT_MSG.getValue(), HttpStatus.OK.value(), null)));
+            response.getWriter().print(toJSON(buildResponse(Message.LOGOUT_MSG.getValue(), HttpStatus.OK.value(), null)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

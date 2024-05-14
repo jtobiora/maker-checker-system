@@ -1,6 +1,6 @@
 package com.swiftfingers.makercheckersystem.service.sessions;
 
-import com.swiftfingers.makercheckersystem.service.redis.TokenService;
+import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -20,7 +20,7 @@ public class SessionManager {
     private static final String KEY = "user-session:sessions:";
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final TokenService tokenCacheService;
+    private final LoginTokenService tokenCacheService;
 
     private HashOperations hashOperations;
 

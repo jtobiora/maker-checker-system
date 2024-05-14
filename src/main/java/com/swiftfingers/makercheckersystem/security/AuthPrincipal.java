@@ -14,4 +14,5 @@ public class AuthPrincipal {
     private String authorities;
     private String principal;
     private String credentials;
+
 }

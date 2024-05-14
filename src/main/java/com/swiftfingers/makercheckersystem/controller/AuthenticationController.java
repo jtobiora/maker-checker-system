@@ -41,6 +41,13 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.setUp2Fa(authRequest));
     }
 
+    @GetMapping("/2fa-token-confirmation/{token}")
+    public ResponseEntity<AuthenticationResponse> confirm2FAToken (@PathVariable String token, @PathParam("email") String email, HttpSession session) {
+        return ResponseEntity.ok(authenticationService.confirm2FaToken(token, email, session.getId()));
+    }
+
+
+
 
 
 

@@ -23,6 +23,9 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "login_id")
+    private String loginId;
+
     @Column(name = "token")
     private String _2faToken;
 
@@ -34,7 +37,14 @@ public class Token {
 
     @JsonIgnore
     @Column(name = "auth_payload", columnDefinition = "longtext")
-    private String authPayload;
+    private String authPayload; //store the authentication object
+
+    @JsonIgnore
+    @Column(name = "token_hash", columnDefinition = "longtext")
+    private String tokenHash;  // Store the hash of the token
+
+    @Column(name = "identifier")
+    private String uniqueIdentifier;
 
     public Token(String token, Instant creationTime) {
         this._2faToken = token;

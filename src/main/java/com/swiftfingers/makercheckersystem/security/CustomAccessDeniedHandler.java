@@ -11,6 +11,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 
 @Slf4j
@@ -29,9 +30,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             log.warn("User: " + auth.getName()
                     + " attempted to access the protected URL: "
                     + request.getRequestURI());
+
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            PrintWriter writer = response.getWriter();
+            writer.println("Access is Denied: " + exc.getMessage());
         }
 
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.getWriter().write("Access Denied");
+//        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+//        response.getWriter().write("Access Denied");
     }
 }
