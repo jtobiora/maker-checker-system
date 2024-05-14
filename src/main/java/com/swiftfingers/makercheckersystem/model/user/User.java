@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.model.user;
 
+import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import jakarta.persistence.*;
@@ -59,6 +60,13 @@ public class User extends BaseEntity {
 
     @Column(name = "first_login")
     private boolean isFirstTimeLogin;
+
+    @Column(name="2fa_enabled",columnDefinition = "boolean default false")
+    private boolean is2FAEnabled;
+
+    @Column(name = "token_dest")
+    @Enumerated(EnumType.STRING)
+    private TokenDestination tokenDestination;
 
     @Transient
     private Set<Role> roles = new HashSet<>();

@@ -2,6 +2,10 @@ package com.swiftfingers.makercheckersystem.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -25,10 +29,14 @@ public abstract class BaseEntity implements Serializable {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime updatedAt;
 
     @CreatedBy

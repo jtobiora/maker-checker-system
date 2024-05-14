@@ -19,7 +19,7 @@ public class AuthenticationResponse implements Serializable {
     private static final long serialVersionUID = 1250166508152483573L;
     private String token;
     @JsonIgnore
-    private AuthPrincipal auth;
+//    private AuthPrincipal auth;
     private String authorities;
     private String message;
 }

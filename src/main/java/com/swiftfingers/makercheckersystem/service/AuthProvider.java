@@ -45,7 +45,7 @@ public class AuthProvider implements AuthenticationProvider {
         UsernamePasswordAuthenticationToken authenticationToken = null;
         String username = auth.getName();
         String password = String.valueOf(auth.getCredentials());
-        User userFound = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User userFound = userRepository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         //first time login user -- prompt for password change
         if (userFound.isFirstTimeLogin()) {
@@ -61,10 +61,13 @@ public class AuthProvider implements AuthenticationProvider {
         Map<String, Object> authMap = getGrantedAuthorities(userFound);
         Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>) authMap.get("grantedAuth");
 
-        authenticationToken = new UsernamePasswordAuthenticationToken(
-                new org.springframework.security.core.userdetails.User(username, password, grantedAuthorities), password, grantedAuthorities);
+//        authenticationToken = new UsernamePasswordAuthenticationToken(
+//                new org.springframework.security.core.userdetails.User(username, password, grantedAuthorities), password, grantedAuthorities);
 
-        authenticationToken.setDetails(authMap.get("authString"));
+        authenticationToken = new UsernamePasswordAuthenticationToken(username, password, grantedAuthorities);
+
+                // authenticationToken.setDetails(authMap.get("authString"));
+        authenticationToken.setDetails(userFound);
         return authenticationToken;
     }
 

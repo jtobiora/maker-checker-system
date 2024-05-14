@@ -3,8 +3,7 @@ package com.swiftfingers.makercheckersystem.service;
 import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
-import com.swiftfingers.makercheckersystem.service.redis.TokenCacheService;
-import com.swiftfingers.makercheckersystem.utils.Utils;
+import com.swiftfingers.makercheckersystem.service.redis.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +25,7 @@ import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 public class LogoutService implements LogoutHandler {
 
     private final JwtTokenService tokenService;
-    private final TokenCacheService tokenCacheService;
+    private final TokenService tokenCacheService;
 
     @Override
     public void logout(
@@ -44,7 +43,7 @@ public class LogoutService implements LogoutHandler {
         SecurityContextHolder.clearContext();
 
         //remove the token
-        tokenCacheService.deleteUserToken(subject.getSessionId()); //destroy the token and remove from redis
+        tokenCacheService.deleteUserLoginToken(subject.getSessionId()); //destroy the token and remove from redis
 
         // Invalidate the session
         HttpSession session = request.getSession(false);

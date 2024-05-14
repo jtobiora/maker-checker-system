@@ -1,13 +1,11 @@
 package com.swiftfingers.makercheckersystem.security;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
 import com.swiftfingers.makercheckersystem.service.AuthenticationService;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
-import com.swiftfingers.makercheckersystem.service.redis.TokenCacheService;
+import com.swiftfingers.makercheckersystem.service.redis.TokenService;
 import com.swiftfingers.makercheckersystem.service.sessions.SessionManager;
-import com.swiftfingers.makercheckersystem.utils.Utils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthenticationService authService;
     private final SessionManager sessionManager;
-    private final TokenCacheService tokenCacheService;
+    private final TokenService tokenCacheService;
     private final JwtTokenService tokenService;
 
     @Override
@@ -56,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //is the user token valid
-        if (!tokenCacheService.isValidUserToken(subject.getSessionId())) {
+        if (!tokenCacheService.isValidUserLoginToken(subject.getSessionId())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().print(toJson(buildResponse(Message.EXPIRED_TOKEN.getValue(), HttpStatus.FORBIDDEN.value(), null)));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -66,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //
         //Does the user have a valid session
         if (sessionManager.isSessionExpired(request, subject.getSessionId())) {
-            tokenCacheService.deleteUserToken(subject.getSessionId()); //destroy the token and remove from redis
+            tokenCacheService.deleteUserLoginToken(subject.getSessionId()); //destroy the token and remove from redis
             buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().print(toJson(buildResponse(Message.EXPIRED_SESSION.getValue(), HttpStatus.FORBIDDEN.value(), null)));

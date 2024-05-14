@@ -1,13 +1,13 @@
 package com.swiftfingers.makercheckersystem.enums;
 
-public enum TokenType {
-    HARD_TOKEN("Hard Token"),
-    SOFT_TOKEN("Soft Token");
+public enum TokenDestination {
+    EMAIL("Email"),
+    SMS("SMS");
 
 
     private String value;
 
-    private TokenType(String value) {
+    private TokenDestination(String value) {
         this.value = value;
     }
 

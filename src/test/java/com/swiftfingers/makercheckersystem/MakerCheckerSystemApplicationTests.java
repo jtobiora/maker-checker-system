@@ -1,9 +1,9 @@
 package com.swiftfingers.makercheckersystem;
 
 import com.swiftfingers.makercheckersystem.model.user.Token;
-import com.swiftfingers.makercheckersystem.service.TokenService;
-import com.swiftfingers.makercheckersystem.utils.ValidationUtils;
+import com.swiftfingers.makercheckersystem.service.redis.TokenService;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 
@@ -14,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class MakerCheckerSystemApplicationTests {
-
+	@Autowired
+     TokenService tokenService;
 	@Test
 	void testValidPasswords() {
 		assertTrue(isValidPassword("Passw0rd!")); // Minimum length, contains digits, uppercase, lowercase, and symbols
@@ -33,11 +34,10 @@ class MakerCheckerSystemApplicationTests {
 	@Test
 	void testTokenGeneration() {
 		// Create a token service
-		TokenService tokenService = new TokenService();
 
 		// Generate tokens for different unique identifiers
-		String token1 = tokenService.generateToken("user123");
-		String token2 = tokenService.generateToken("session456");
+		String token1 = tokenService.generate2FAToken("user123");
+		String token2 = tokenService.generate2FAToken("session456");
 
 		// Ensure tokens are not null
 		assertNotNull(token1);
@@ -55,21 +55,20 @@ class MakerCheckerSystemApplicationTests {
 	@Test
 	void testTokenExpiration() {
 		// Create a token service
-		TokenService tokenService = new TokenService();
 
 		// Generate a token
-		String token = tokenService.generateToken("user123");
+		String token = tokenService.generate2FAToken("user123");
 
 		// Create a token object with a creation time 31 seconds ago
 		Token expiredToken = new Token(token, Instant.now().minusSeconds(31));
 
 		// Ensure token is not valid
-		assertFalse(tokenService.isTokenValid(expiredToken));
+		assertFalse(tokenService.is2FATokenValid(expiredToken));
 
 		// Create a token object with a creation time 29 seconds ago
 		Token validToken = new Token(token, Instant.now().minusSeconds(29));
 
 		// Ensure token is valid
-		assertTrue(tokenService.isTokenValid(validToken));
+		assertTrue(tokenService.is2FATokenValid(validToken));
 	}
 }
