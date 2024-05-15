@@ -16,7 +16,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     @GetMapping
-    @Secured("ROLE_APPROVE_USER")
+    @Secured("ROLE_CREATE_USER")
     public String findAllUsers (){
         return "Users found";
     }

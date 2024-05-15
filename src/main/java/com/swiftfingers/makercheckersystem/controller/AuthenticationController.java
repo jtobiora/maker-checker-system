@@ -1,7 +1,6 @@
 package com.swiftfingers.makercheckersystem.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.payload.request.LoginRequest;
 import com.swiftfingers.makercheckersystem.payload.request.PasswordResetRequest;
 import com.swiftfingers.makercheckersystem.payload.request.TwoFactorAuthRequest;

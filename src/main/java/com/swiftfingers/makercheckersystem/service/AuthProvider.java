@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.CHANGE_PASSWORD_MSG;
+import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_NOT_FOUND;
 
 @Slf4j
 @Component
@@ -45,7 +46,7 @@ public class AuthProvider implements AuthenticationProvider {
         UsernamePasswordAuthenticationToken authenticationToken = null;
         String username = auth.getName();
         String password = String.valueOf(auth.getCredentials());
-        User userFound = userRepository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User userFound = userRepository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND,"User")));
 
         //first time login user -- prompt for password change
         if (userFound.isFirstTimeLogin()) {
@@ -61,12 +62,8 @@ public class AuthProvider implements AuthenticationProvider {
         Map<String, Object> authMap = getGrantedAuthorities(userFound);
         Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>) authMap.get("grantedAuth");
 
-//        authenticationToken = new UsernamePasswordAuthenticationToken(
-//                new org.springframework.security.core.userdetails.User(username, password, grantedAuthorities), password, grantedAuthorities);
-
         authenticationToken = new UsernamePasswordAuthenticationToken(username, password, grantedAuthorities);
 
-                // authenticationToken.setDetails(authMap.get("authString"));
         authenticationToken.setDetails(userFound);
         return authenticationToken;
     }

@@ -2,7 +2,6 @@ package com.swiftfingers.makercheckersystem.security;
 
 import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.JwtSubject;
-import com.swiftfingers.makercheckersystem.service.AuthenticationService;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
 import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
 import com.swiftfingers.makercheckersystem.service.sessions.SessionManager;
@@ -36,8 +35,6 @@ import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService tokenProvider;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final AuthenticationService authService;
     private final SessionManager sessionManager;
     private final LoginTokenService tokenCacheService;
     private final JwtTokenService tokenService;
