@@ -68,6 +68,9 @@ public class AuthorizationRepository {
         return entityManager.createQuery(countQuery).getSingleResult();
     }
 
+    /*
+    *  Finds entity by Id
+    * */
     @Transactional
     public <T extends BaseEntity> T findEntityById(Class<T> entityClass, Long id) {
         T entity = entityManager.find(entityClass, id);
@@ -78,6 +81,9 @@ public class AuthorizationRepository {
         return entity;
     }
 
+    /*
+    *  Approves The Creation of entities that extend BaseEntity
+    * */
     @Transactional
     public <T extends BaseEntity> T approveCreateAction(String entityName, Long id) {
         try {
@@ -85,9 +91,7 @@ public class AuthorizationRepository {
             T entity = findEntityById(entityClass, id);
 
             //Authorization status must be INITIALIZED_CREATE for the entity to be approved after creation
-            if (!entity.getAuthorizationStatus().equals(AuthorizationStatus.INITIALIZED_CREATE)) {
-                throw new BadRequestException(APPROVAL_ERR_MSG);
-            }
+            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_CREATE);
 
             entity.setAuthorizationStatus(AuthorizationStatus.AUTHORIZED);
             entity.setActive(true);
@@ -106,7 +110,7 @@ public class AuthorizationRepository {
     public <T extends BaseEntity> T approveUpdateAction(String entityName, Long id) {
         log.info("Approving update requests for entity {}... ", entityName);
         try {
-            Class<T> entityClass = (Class<T>) Class.forName(entityName);
+            Class<T> entityClass = getEntityClass(entityName);
             T entity = findEntityById(entityClass, id);
 
             //Authorization status must be INITIALIZED_UPDATE for the entity to be approved after update
@@ -196,7 +200,7 @@ public class AuthorizationRepository {
 //        return jsonField;
 //    }
 
-    // Method to find any field in a class or its superclass
+    // Method to find any field in the class or its superclass
     private Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
         try {
             return clazz.getDeclaredField(fieldName);
@@ -208,6 +212,16 @@ public class AuthorizationRepository {
                 throw e; // Field not found in the entire class hierarchy
             }
         }
+    }
+
+    private <T extends BaseEntity> void validateAuthorizationStatus(T entity, AuthorizationStatus requiredStatus) {
+        if (!entity.getAuthorizationStatus().equals(requiredStatus)) {
+            throw new BadRequestException(APPROVAL_ERR_MSG);
+        }
+    }
+
+    private <T extends BaseEntity> Class<T> getEntityClass(String entityName) throws ClassNotFoundException {
+        return (Class<T>) Class.forName(entityName);
     }
 
 

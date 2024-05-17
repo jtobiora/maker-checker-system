@@ -10,6 +10,7 @@ import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.utils.EntityTypeResolver;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -67,7 +68,7 @@ public class AuthorizationServiceImpl<T> implements AuthorizationService<T> {
         } else if (authorizationType.equalsIgnoreCase(ModelState.AUTHORIZED.toString())) {
             return List.of(AUTHORIZED);
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
