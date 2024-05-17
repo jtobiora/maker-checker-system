@@ -1,6 +1,6 @@
 package com.swiftfingers.makercheckersystem.model.user;
 
-import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeUpdate;
+import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.model.role.Role;
@@ -8,7 +8,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import jdk.jfr.Label;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -37,7 +36,7 @@ public class User extends BaseEntity {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @ExcludeUpdate
+    @ExcludeFromUpdate
     @Size(message = "Username cannot be more than 20 characters", max = 20)
     @NotBlank(message = "Username cannot be empty")
     @Column(nullable = false, unique = true, updatable = false)

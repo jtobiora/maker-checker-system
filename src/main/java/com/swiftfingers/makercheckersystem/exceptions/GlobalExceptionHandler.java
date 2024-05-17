@@ -47,6 +47,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(buildResponse(ex.getMessage(),HttpStatus.BAD_REQUEST.value(), request, null), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<?> appException(AppException ex, WebRequest request) {
+        return new ResponseEntity<>(buildResponse(ex.getMessage(),HttpStatus.UNPROCESSABLE_ENTITY.value(), request, null), HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         return new ResponseEntity<>(buildResponse(ex.getMessage(),HttpStatus.FORBIDDEN.value(), request, null), HttpStatus.FORBIDDEN);

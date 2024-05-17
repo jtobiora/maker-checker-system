@@ -1,7 +1,7 @@
 package com.swiftfingers.makercheckersystem.model.role;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeUpdate;
+import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import jakarta.persistence.*;
@@ -22,6 +22,7 @@ import java.util.List;
 public class Role extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ExcludeFromUpdate
     private Long id;
 
     @NotBlank(message = "Role name cannot be empty")
@@ -39,7 +40,7 @@ public class Role extends BaseEntity {
     @Column(name = "system_role")
     private boolean systemRole;
 
-    @ExcludeUpdate
+    @ExcludeFromUpdate
     @Column(name = "role_code", nullable = false, updatable = false ,unique = true)
     private String roleCode;
 

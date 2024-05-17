@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppException extends RuntimeException {
-    public static final String ERR_COMP_EXISTS = "core.company.exists";
 
     protected String message;
     protected Object[] params;

@@ -89,13 +89,16 @@ public class RoleService {
                 .authorizationRole(req.isAuthorizationRole())
                 .build();
 
-        String roleInJSONFormat = MapperUtils.toJSON(roleToUpdate);
+        roleToUpdate.setAuthorizationStatus(AuthorizationStatus.AUTHORIZED);
+        roleToUpdate.setActive(true);
 
-        found.setJsonData(roleInJSONFormat);
+        String stringifiedRole = MapperUtils.toJSON(roleToUpdate);
+
+        found.setJsonData(stringifiedRole);
         found.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
 
-        Role saved = roleRepository.save(found);
-        addPermissions(saved, req.getPermissions());
+        //Role saved = roleRepository.save(found);
+        //addPermissions(saved, req.getPermissions());
         return Utils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
     }
 
