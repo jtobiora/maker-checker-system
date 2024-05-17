@@ -54,8 +54,7 @@ public abstract class BaseEntity implements Serializable {
     private boolean active;
 
     @JsonIgnore
-    @Lob
-    @Column(name = "jsonData")
+    @Column(name = "json_data", columnDefinition = "TEXT")
     private String jsonData;
 
     @Enumerated(EnumType.STRING)

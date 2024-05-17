@@ -4,7 +4,7 @@ import java.util.List;
 
 public class AppConstants {
     public static final String TOKEN_HEADER = "Authorization";
-    public static final int MAX_SESSION_IDLE_TIME_SECONDS = 600;
+    public static final int MAX_SESSION_IDLE_TIME_SECONDS = 900;
     public static final String CREATE_ENTITY = "CREATE_ACTION";
     public static final String DELETE_ENTITY = "DELETE_ACTION";
 
