@@ -7,6 +7,8 @@ import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
+import com.swiftfingers.makercheckersystem.payload.EntityToggle;
+import com.swiftfingers.makercheckersystem.payload.request.AuthRequest;
 import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.ROLE_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_NOT_FOUND;
-import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.INITIALIZED_CREATE;
+import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -82,14 +84,14 @@ public class RoleService {
         }
 
         Role roleToUpdate = Role.builder()
-                .name(found.getName())
-                .ownerUserName(StringUtils.isEmpty(req.getOwnerUserName()) ? found.getOwnerUserName() : req.getOwnerUserName())
+                .authorizationRole(Utils.getBoolean(req.isAuthorizationRole()))
+                .systemRole(Utils.getBoolean(req.isSystemRole()))
                 .description(req.getDescription())
-                .systemRole(req.isSystemRole())
-                .authorizationRole(req.isAuthorizationRole())
+                .name(req.getName())
+                .roleCode(found.getRoleCode())
+                .ownerUserName(found.getOwnerUserName())
                 .build();
 
-        roleToUpdate.setAuthorizationStatus(AuthorizationStatus.AUTHORIZED);
         roleToUpdate.setActive(true);
 
         String stringifiedRole = MapperUtils.toJSON(roleToUpdate);
@@ -97,8 +99,8 @@ public class RoleService {
         found.setJsonData(stringifiedRole);
         found.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
 
-        //Role saved = roleRepository.save(found);
-        //addPermissions(saved, req.getPermissions());
+        Role saved = roleRepository.save(found);
+        addPermissions(saved, req.getPermissions());
         return Utils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
     }
 
@@ -106,8 +108,8 @@ public class RoleService {
 
     }
 
-    public Optional<Role> findById(Long aLong) {
-        return Optional.empty();
+    public Role findById (Long id) {
+        return roleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND,"Role")));
     }
 
     public boolean exists(RoleRequest role, Long id) {
@@ -116,6 +118,23 @@ public class RoleService {
         } else {
             return roleRepository.findRoleByRoleCodeAndIdNot(role.getName(), id).isPresent();
         }
+    }
+
+    public AppResponse toggleRole (Long id, boolean isActive) {
+        Role roleFound = findById(id);
+
+        EntityToggle tog = new EntityToggle();
+        tog.setActive(isActive);
+        tog.setAuthorizationStatus(AUTHORIZED);
+
+        String stringifiedRole = MapperUtils.toJSON(tog, true);
+
+        roleFound.setJsonData(stringifiedRole);
+        roleFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_TOGGLE);
+
+        roleRepository.save(roleFound);
+
+        return Utils.buildResponse(HttpStatus.CREATED, "Role status has been toggled and awaiting Authorizer's action", null);
     }
 
     private void addPermissions(Role roleSaved, List<Permission> permissions) {
@@ -134,4 +153,5 @@ public class RoleService {
             }
         }
     }
+
 }

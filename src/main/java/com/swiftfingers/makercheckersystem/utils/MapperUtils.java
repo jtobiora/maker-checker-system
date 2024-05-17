@@ -1,16 +1,24 @@
 package com.swiftfingers.makercheckersystem.utils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.swiftfingers.makercheckersystem.audits.annotations.Sensitive;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.GenericTypeResolver;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
 @Slf4j
+@Component
 public class MapperUtils {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,6 +46,7 @@ public class MapperUtils {
 
     public static <T> T fromJSON(String json, Class<T> clazz) {
         try {
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
             throw new RuntimeException("Error deserializing JSON", e);
@@ -55,6 +64,17 @@ public class MapperUtils {
     public static String toJSON(Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error serializing object to JSON", e);
+        }
+    }
+
+    public static String toJSON(Object t, boolean ignoreNull) {
+        try {
+            if (ignoreNull) {
+                objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            }
+            return objectMapper.writeValueAsString(t);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error serializing object to JSON", e);
         }

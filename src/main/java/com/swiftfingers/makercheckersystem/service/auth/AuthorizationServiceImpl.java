@@ -55,6 +55,8 @@ public class AuthorizationServiceImpl<T> implements AuthorizationService<T> {
             return authorizationRepository.approveCreateAction(className, entityId);
         } else if (authRequest.getActions().equals(ApprovalActions.APPROVE_UPDATE)) {
             return authorizationRepository.approveUpdateAction(className, entityId);
+        } else if (authRequest.getActions().equals(ApprovalActions.APPROVE_TOGGLE)) {
+            return authorizationRepository.approveToggleAction(className, entityId);
         }
 
         return null;

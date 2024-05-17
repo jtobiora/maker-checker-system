@@ -72,7 +72,7 @@ public class AuthorizationRepository {
     *  Finds entity by Id
     * */
     @Transactional
-    public <T extends BaseEntity> T findEntityById(Class<T> entityClass, Long id) {
+    public <T extends BaseEntity> T findEntityById (Class<T> entityClass, Long id) {
         T entity = entityManager.find(entityClass, id);
         if (entity == null) {
             throw new ResourceNotFoundException("Entity of type " + entityClass.getSimpleName() + " with ID " + id + " not found");
@@ -82,12 +82,13 @@ public class AuthorizationRepository {
     }
 
     /*
-    *  Approves The Creation of entities that extend BaseEntity
-    * */
+     * Approves entity after CREATE action is done
+     * */
     @Transactional
     public <T extends BaseEntity> T approveCreateAction(String entityName, Long id) {
+        log.info("Approving create requests for entity {}... ", entityName);
         try {
-            Class<T> entityClass = (Class<T>) Class.forName(entityName);
+            Class<T> entityClass = getEntityClass(entityName);
             T entity = findEntityById(entityClass, id);
 
             //Authorization status must be INITIALIZED_CREATE for the entity to be approved after creation
@@ -98,82 +99,177 @@ public class AuthorizationRepository {
             entity.setJsonData(null);
 
             // Save the updated entity
-            entityManager.merge(entity);
-            entityManager.flush();
-            return entity;
+            return entityManager.merge(entity);
         } catch (ClassNotFoundException e) {
+            log.error("Error processing request ", e);
             throw new BadRequestException("Invalid entity name: " + entityName);
         }
     }
 
+//    @Transactional
+//    public <T extends BaseEntity> T approveUpdateAction(String entityName, Long id) {
+//        log.info("Approving update requests for entity {}... ", entityName);
+//        try {
+//            Class<T> entityClass = getEntityClass(entityName);
+//            T entity = findEntityById(entityClass, id);
+//
+//            //Authorization status must be INITIALIZED_UPDATE for the entity to be approved after update
+//            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_UPDATE);
+//
+//            if (entity != null) {
+//                // Assuming the JSON string is stored in a field named 'jsonData'
+//                // Find the 'jsonData' field in the class hierarchy
+//                //Field jsonField = findJsonDataField(entityClass, "");
+//                Field jsonField = findField(entityClass, JSON_DATA_FIELD);
+//                jsonField.setAccessible(true);
+//                String jsonString = (String) jsonField.get(entity);
+//                if (jsonString != null) {
+//                    Map<String, Object> updateValues = MapperUtils.fromJSON(jsonString, Map.class);
+//                    updateEntity(entity, updateValues);
+//                    return entityManager.merge(entity);
+//                }
+//            }
+//
+//        } catch (ClassNotFoundException ex){
+//            log.error("Class not found ", ex);
+//            throw new BadRequestException("Invalid entity name: " + entityName);
+//        } catch (NoSuchFieldException e) {
+//            log.error("Field does not exist", e);
+//            throw new AppException("Invalid field ");
+//        } catch (IllegalAccessException e) {
+//            log.error("Cannot access field", e);
+//            throw new AppException("Cannot access field");
+//        }
+//
+//        return null;
+//    }
+
+//    private <T> void updateEntity(BaseEntity entity, Map<String, Object> updateValues) {
+//        Class<? extends BaseEntity> clazz = entity.getClass();
+//
+//        //manually set the JSON data field to null
+//        entity.setJsonData(null);
+//
+//        updateValues.forEach((key, value) -> {
+//            try {
+//                // Check if the field exists in the entity class or its superclass
+//                Field field = findField(clazz, key);
+//                field.setAccessible(true);
+//                if (field.getAnnotation(ExcludeFromUpdate.class) == null) {
+//                    // Check if the field type is an enum
+//                    if (field.getType().isEnum()) {
+//                        // Get the enum constants
+//                        Enum<?>[] enumConstants = (Enum<?>[]) field.getType().getEnumConstants();
+//                        // Iterate over enum constants to find a match with the value
+//                        for (Enum<?> enumConstant : enumConstants) {
+//                            if (enumConstant.name().equals(value)) {
+//                                field.set(entity, enumConstant);
+//                                break;
+//                            }
+//                        }
+//                    } else {
+//                        // Set the value directly for non-enum fields
+//                        field.set(entity, value);
+//                    }
+//                    log.info("Field name: {} --- Updated value: {}", field.getName(), value);
+//                }
+//            } catch (NoSuchFieldException | IllegalAccessException e) {
+//                log.error("Error while updating entity ", e);
+//            }
+//        });
+//    }
+
+    // Method to find any field in the class or its superclass
+//    private Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+//        try {
+//            return clazz.getDeclaredField(fieldName);
+//        } catch (NoSuchFieldException e) {
+//            // Field not found in the current class, try superclass
+//            if (clazz.getSuperclass() != null) {
+//                return findField(clazz.getSuperclass(), fieldName);
+//            } else {
+//                throw e; // Field not found in the entire class hierarchy
+//            }
+//        }
+//    }
+
+    /*
+    * Approves entity after UPDATE action is done
+    * */
     @Transactional
     public <T extends BaseEntity> T approveUpdateAction(String entityName, Long id) {
         log.info("Approving update requests for entity {}... ", entityName);
         try {
             Class<T> entityClass = getEntityClass(entityName);
             T entity = findEntityById(entityClass, id);
-
-            //Authorization status must be INITIALIZED_UPDATE for the entity to be approved after update
-            if (!entity.getAuthorizationStatus().equals(AuthorizationStatus.INITIALIZED_UPDATE)) {
-                throw new BadRequestException(APPROVAL_ERR_MSG);
-            }
+            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_UPDATE);
 
             if (entity != null) {
-                // Assuming the JSON string is stored in a field named 'jsonData'
-                // Find the 'jsonData' field in the class hierarchy
-                //Field jsonField = findJsonDataField(entityClass, "");
-                Field jsonField = findField(entityClass, JSON_DATA_FIELD);
-                jsonField.setAccessible(true);
-                String jsonString = (String) jsonField.get(entity);
-                if (jsonString != null) {
-                    Map<String, Object> updateValues = MapperUtils.fromJSON(jsonString, Map.class);
-                    updateEntity(entity, updateValues);
-                    return entityManager.merge(entity);
-                }
+                pullEntityFromJson(entity);
+                return entityManager.merge(entity);
             }
-
-        } catch (ClassNotFoundException ex){
+        } catch (ClassNotFoundException ex) {
             log.error("Class not found ", ex);
             throw new BadRequestException("Invalid entity name: " + entityName);
-        } catch (NoSuchFieldException e) {
-            log.error("Field does not exist", e);
-            throw new AppException("Invalid field ");
-        } catch (IllegalAccessException e) {
-            log.error("Cannot access field", e);
-            throw new AppException("Cannot access field");
+        }
+        return null;
+    }
+
+    @Transactional
+    public <T extends BaseEntity> T approveToggleAction(String entityName, Long id) {
+        log.info("Approving toggle requests for entity {}... ", entityName);
+        try {
+            Class<T> entityClass = getEntityClass(entityName);
+            T entity = findEntityById(entityClass, id);
+            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_TOGGLE);
+            if (entity != null) {
+                pullEntityFromJson(entity);
+                return entityManager.merge(entity);
+            }
+        } catch (ClassNotFoundException e) {
+            log.error("Class not found ", e);
+            throw new BadRequestException("Invalid entity name: " + entityName);
         }
 
         return null;
     }
 
-    private <T> void updateEntity(BaseEntity entity, Map<String, Object> updateValues) {
-        Class<? extends BaseEntity> clazz = entity.getClass();
+    /*
+    *  Pulls out the entity from the JSON string stored in 'jsonData' field and then uses it to update the entity passed
+    *  in the argument
+    * */
+    private <T extends BaseEntity> void pullEntityFromJson(T entity) {
+        //The JSON string is stored in a field named 'jsonData'
+        // Find the 'jsonData' field in the class hierarchy (from the entity to its superclasses)
+        try {
+            Field jsonField = findField(entity.getClass(), JSON_DATA_FIELD);
+            jsonField.setAccessible(true);
+            String jsonString = (String) jsonField.get(entity);
+            if (jsonString != null) {
+                //convert the values in 'jsonData' field to a Map. The field stores the updated resource
+                Map<String, Object> updateValues = MapperUtils.fromJSON(jsonString, Map.class);
+                updateEntity(entity, updateValues);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            log.error("Error while updating entity ", e);
+            throw new AppException("Error while updating entity: " + e.getMessage());
+        }
+    }
 
-        //manually set the JSON data field to null
+    /*
+    * Updates the entity using the values pulled out from the JSON string and which is stored in a Map
+    * @entity - the resource being updated
+    * @updateValues - the values to be updated with
+    * */
+    private <T extends BaseEntity> void updateEntity(T entity, Map<String, Object> updateValues) {
         entity.setJsonData(null);
-
+        entity.setAuthorizationStatus(AuthorizationStatus.AUTHORIZED);
         updateValues.forEach((key, value) -> {
             try {
-                // Check if the field exists in the entity class or its superclass
-                Field field = findField(clazz, key);
+                Field field = findField(entity.getClass(), key);
                 field.setAccessible(true);
-                if (field.getAnnotation(ExcludeFromUpdate.class) == null) {
-                    // Check if the field type is an enum
-                    if (field.getType().isEnum()) {
-                        // Get the enum constants
-                        Enum<?>[] enumConstants = (Enum<?>[]) field.getType().getEnumConstants();
-                        // Iterate over enum constants to find a match with the value
-                        for (Enum<?> enumConstant : enumConstants) {
-                            if (enumConstant.name().equals(value)) {
-                                field.set(entity, enumConstant);
-                                break;
-                            }
-                        }
-                    } else {
-                        // Set the value directly for non-enum fields
-                        field.set(entity, value);
-                    }
-                    log.info("Field name: {} --- Updated value: {}", field.getName(), value);
+                if (field.getAnnotation(ExcludeFromUpdate.class) == null && updateValues.containsKey(key) && value != null) {
+                    updateField(entity, field, value);
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 log.error("Error while updating entity ", e);
@@ -181,31 +277,43 @@ public class AuthorizationRepository {
         });
     }
 
-//    // Method to find the 'jsonData' field in the class hierarchy
-//    private Field findJsonDataField(Class<?> entityClass) throws NoSuchFieldException {
-//        Field jsonField = null;
-//        Class<?> currentClass = entityClass;
-//        while (jsonField == null && currentClass != null) {
-//            try {
-//                jsonField = currentClass.getDeclaredField("jsonData");
-//            } catch (NoSuchFieldException ignored) {
-//                // Field not found in the current class, move up the hierarchy
-//                currentClass = currentClass.getSuperclass();
-//            }
-//        }
-//        if (jsonField == null) {
-//            // 'jsonData' field not found in the class hierarchy
-//            throw new NoSuchFieldException("jsonData");
-//        }
-//        return jsonField;
-//    }
+    /*
+    * Updates the entity passed in as argument.
+    * @entity - The entity to update
+    * @field - The field of the entity to update
+    * @value - The value to be updated
+    * */
+    private <T extends BaseEntity, V> void updateField(T entity, Field field, V value) throws IllegalAccessException {
+        if (field.getType().isEnum()) {
+            //The field is an enum
+            updateEnumField(entity, field, (String) value);
+        } else {
+            //The field is a regular field not Enum
+            field.set(entity, value);
+        }
+        log.info("Field name: {} --- Updated value: {}", field.getName(), value);
+    }
 
-    // Method to find any field in the class or its superclass
+    /*
+    * Updates an enum field
+    * */
+    private <T extends BaseEntity> void updateEnumField(T entity, Field field, String value) throws IllegalAccessException {
+        Enum<?>[] enumConstants = (Enum<?>[]) field.getType().getEnumConstants();
+        for (Enum<?> enumConstant : enumConstants) {
+            if (enumConstant.name().equals(value)) {
+                field.set(entity, enumConstant);
+                break;
+            }
+        }
+    }
+
+    /*
+    * Finds any field in a class or its superclasses
+    * */
     private Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
         try {
             return clazz.getDeclaredField(fieldName);
         } catch (NoSuchFieldException e) {
-            // Field not found in the current class, try superclass
             if (clazz.getSuperclass() != null) {
                 return findField(clazz.getSuperclass(), fieldName);
             } else {
@@ -214,15 +322,22 @@ public class AuthorizationRepository {
         }
     }
 
+    /*
+    * Checks Authorization status to avoid illegal updates or creation
+    * */
     private <T extends BaseEntity> void validateAuthorizationStatus(T entity, AuthorizationStatus requiredStatus) {
         if (!entity.getAuthorizationStatus().equals(requiredStatus)) {
             throw new BadRequestException(APPROVAL_ERR_MSG);
         }
     }
 
+    /*
+     * Gets the entity class from a fully qualified class name
+     * */
     private <T extends BaseEntity> Class<T> getEntityClass(String entityName) throws ClassNotFoundException {
         return (Class<T>) Class.forName(entityName);
     }
+
 
 
 }
