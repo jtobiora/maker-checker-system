@@ -6,7 +6,7 @@ import com.swiftfingers.makercheckersystem.payload.request.PasswordResetRequest;
 import com.swiftfingers.makercheckersystem.payload.request.TwoFactorAuthRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.payload.response.AuthenticationResponse;
-import com.swiftfingers.makercheckersystem.service.AuthenticationService;
+import com.swiftfingers.makercheckersystem.service.auth.AuthenticationService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.websocket.server.PathParam;

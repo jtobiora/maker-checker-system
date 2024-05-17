@@ -1,22 +1,20 @@
 package com.swiftfingers.makercheckersystem.service;
 
-import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
 import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
+import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleRepository;
-
 import com.swiftfingers.makercheckersystem.utils.Utils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -24,24 +22,27 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
+import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.ROLE_EXISTS;
+import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.INITIALIZED_CREATE;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleAuthorityRepository roleAuthorityRepository;
+    private final AuthorizationRepository authorizationRepository;
 
 
     @Secured("ROLE_CREATE_ROLE")
     public AppResponse create(RoleRequest roleRequest) {
-        log.info("Creating roles ...");
+        log.debug("Creating roles ...");
         String roleCode = String.format("%s_%s", roleRequest.getName(), roleRequest.getOwnerUserName()).toLowerCase();
         roleRequest.setRoleCode(roleCode);
         if (exists(roleRequest, null)) {
-            throw new ModelExistsException(String.format("Role '%s' already exists", roleRequest.getName()));
+            throw new ModelExistsException(String.format(ROLE_EXISTS, roleRequest.getName()));
         }
 
         Role role = Role.builder()
@@ -53,14 +54,15 @@ public class RoleService {
                 .ownerUserName(roleRequest.getOwnerUserName())
                 .build();
 
-        role.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_CREATE);
+        role.setAuthorizationStatus(INITIALIZED_CREATE);
         role.setActive(false);
 
         Role roleSaved = roleRepository.save(role);
 
-        addPermissions(roleSaved, role.getPermissions());
+        addPermissions(roleSaved, roleRequest.getPermissions());
 
-        return Utils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
+        //fire email to authorizers to act upon this
+        return Utils.buildResponse(HttpStatus.CREATED, "Role has been saved ", null);
     }
 
 
@@ -80,7 +82,7 @@ public class RoleService {
         if (id == null) {
             return roleRepository.findRoleByRoleCode(role.getRoleCode()).isPresent();
         } else {
-            return roleRepository.findRoleByNameAndIdNot(role.getName(), id).isPresent();
+            return roleRepository.findRoleByRoleCodeAndIdNot(role.getName(), id).isPresent();
         }
     }
 

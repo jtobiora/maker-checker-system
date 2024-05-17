@@ -7,6 +7,7 @@ public enum PermissionType {
 
     ADMIN("Admin"),
     USER("User"),
+    READ("Read"),
     ALL("All");
 
     PermissionType(String description) {

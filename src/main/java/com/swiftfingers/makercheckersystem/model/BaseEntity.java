@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeUpdate;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 )
 public abstract class BaseEntity implements Serializable {
 
+    @ExcludeUpdate
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -39,6 +41,7 @@ public abstract class BaseEntity implements Serializable {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime updatedAt;
 
+    @ExcludeUpdate
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;

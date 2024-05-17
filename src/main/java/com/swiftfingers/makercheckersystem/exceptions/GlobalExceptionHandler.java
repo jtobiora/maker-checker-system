@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -49,6 +50,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         return new ResponseEntity<>(buildResponse(ex.getMessage(),HttpStatus.FORBIDDEN.value(), request, null), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<?> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, WebRequest request) {
+        String errorMessage = ex.getParameterName() + " is missing";
+        return new ResponseEntity<>(buildResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), request, null), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)

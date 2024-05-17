@@ -1,4 +1,4 @@
-package com.swiftfingers.makercheckersystem.service;
+package com.swiftfingers.makercheckersystem.service.auth;
 
 import com.swiftfingers.makercheckersystem.constants.SecurityMessages;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
@@ -18,6 +18,9 @@ import com.swiftfingers.makercheckersystem.repository.PasswordHistoryRepository;
 import com.swiftfingers.makercheckersystem.repository.TokenRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.security.AuthPrincipal;
+import com.swiftfingers.makercheckersystem.service.AuthProvider;
+import com.swiftfingers.makercheckersystem.service.EmailService;
+import com.swiftfingers.makercheckersystem.service.TwoFaTokenService;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
 import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;

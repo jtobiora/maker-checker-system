@@ -3,6 +3,7 @@ package com.swiftfingers.makercheckersystem.repository;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ public interface RoleAuthorityRepository extends JpaRepository <RoleAuthority, L
 
 
     @Transactional
+    @Modifying
     @Query("DELETE FROM RoleAuthority ra WHERE ra.role.id = :roleId AND ra.permission.code NOT IN :ids")
     void deleteAllByRoleIdAndPermissionCodeNotIn(Long roleId, List<String> ids);
 
