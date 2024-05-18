@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.*;
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.serializeObjectExcludingSensitiveFields;
@@ -30,17 +27,17 @@ public class AuditTrailAspect {
 
     @Before("@annotation(createOperation)")
     public void logCreateOperation(JoinPoint joinPoint, CreateOperation createOperation) {
-        logOperation(joinPoint, CREATE_ENTITY);
+        logOperation(joinPoint, CREATE);
     }
 
     @Before("@annotation(updateOperation)")
     public void logUpdateOperation(JoinPoint joinPoint, UpdateOperation updateOperation) {
-        logOperation(joinPoint, UPDATE_ENTITY);
+        logOperation(joinPoint, UPDATE);
     }
 
     @Before("@annotation(deleteOperation)")
     public void logDeleteOperation(JoinPoint joinPoint, DeleteOperation deleteOperation) {
-        logOperation(joinPoint, DELETE_ENTITY);
+        logOperation(joinPoint, DELETE);
     }
 
     private void logOperation(JoinPoint joinPoint, String action) {

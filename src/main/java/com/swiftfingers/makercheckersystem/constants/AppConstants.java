@@ -5,10 +5,11 @@ import java.util.List;
 public class AppConstants {
     public static final String TOKEN_HEADER = "Authorization";
     public static final int MAX_SESSION_IDLE_TIME_SECONDS = 900;
-    public static final String CREATE_ENTITY = "CREATE_ACTION";
-    public static final String DELETE_ENTITY = "DELETE_ACTION";
+    public static final String CREATE = "CREATE_ACTION";
+    public static final String DELETE = "DELETE_ACTION";
 
-    public static final String UPDATE_ENTITY = "UPDATE_ACTION";
+    public static final String UPDATE = "UPDATE_ACTION";
+    public static final String TOGGLE = "TOGGLE_ACTION";
 
     public static final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
 

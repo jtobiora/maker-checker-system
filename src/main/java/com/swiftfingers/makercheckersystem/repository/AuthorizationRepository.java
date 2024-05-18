@@ -137,14 +137,14 @@ public class AuthorizationRepository {
         }
     }
 
-    private <T extends BaseEntity> T findAndValidateEntity(String entityName, Long id, AuthorizationStatus expectedStatus) throws ClassNotFoundException {
+    public <T extends BaseEntity> T findAndValidateEntity(String entityName, Long id, AuthorizationStatus expectedStatus) throws ClassNotFoundException {
         Class<T> entityClass = getEntityClass(entityName);
         T entity = findEntityById(entityClass, id);
         validateAuthorizationStatus(entity, expectedStatus);
         return entity;
     }
 
-    private <T extends BaseEntity> void updateEntityStatus(T entity, AuthorizationStatus newStatus, boolean isActive, String reason) {
+    public <T extends BaseEntity> void updateEntityStatus(T entity, AuthorizationStatus newStatus, boolean isActive, String reason) {
         entity.setAuthorizationStatus(newStatus);
         entity.setActive(isActive);
         entity.setJsonData(null);
