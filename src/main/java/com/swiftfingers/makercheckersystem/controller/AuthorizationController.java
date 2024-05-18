@@ -1,6 +1,5 @@
 package com.swiftfingers.makercheckersystem.controller;
 
-import com.swiftfingers.makercheckersystem.controller.auth.ApprovalService;
 import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
 import com.swiftfingers.makercheckersystem.service.RoleService;
 import com.swiftfingers.makercheckersystem.service.auth.AuthorizationService;

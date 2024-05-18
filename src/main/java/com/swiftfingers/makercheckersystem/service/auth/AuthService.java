@@ -1,4 +1,4 @@
-package com.swiftfingers.makercheckersystem.controller.auth;
+package com.swiftfingers.makercheckersystem.service.auth;
 
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.payload.request.ApprovalRequest;

@@ -1,5 +1,6 @@
-package com.swiftfingers.makercheckersystem.controller.auth;
+package com.swiftfingers.makercheckersystem.service.auth;
 
+import com.swiftfingers.makercheckersystem.repository.AuthRepository;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.enums.ModelState;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
@@ -43,32 +44,27 @@ public class AuthServiceImpl<T> implements AuthService<T> {
     public BaseEntity approve(ApprovalRequest approvalRequest, Long entityId) {
         String className = EntityTypeResolver.getFullyQualifiedClassName(approvalRequest.getEntityName());
         log.info("Fully qualified class name: {}", className);
-        switch (approvalRequest.getActions()) {
-            case APPROVE_CREATE:
-                return approvalService.approveCreateAction(className, entityId);
-            case APPROVE_UPDATE:
-                return approvalService.approveUpdateAction(className, entityId);
-            case APPROVE_TOGGLE:
-                return approvalService.approveToggleAction(className, entityId);
-            default:
-                throw new BadRequestException("Invalid approval action");
-        }
+        return switch (approvalRequest.getActions()) {
+            case APPROVE_CREATE -> approvalService.approveCreateAction(className, entityId);
+            case APPROVE_UPDATE -> approvalService.approveUpdateAction(className, entityId);
+            case APPROVE_TOGGLE -> approvalService.approveToggleAction(className, entityId);
+            default -> throw new BadRequestException("Invalid approval action");
+        };
     }
 
     @Override
     public BaseEntity reject(RejectionRequest rejectionRequest, Long entityId) {
         String className = EntityTypeResolver.getFullyQualifiedClassName(rejectionRequest.getEntityName());
         log.info("Fully qualified class name: {}", className);
-        switch (rejectionRequest.getActions()) {
-            case REJECT_CREATE:
-                return rejectionService.rejectCreateAction(className, entityId, rejectionRequest.getReason());
-            case REJECT_UPDATE:
-                return rejectionService.rejectUpdateAction(className, entityId, rejectionRequest.getReason());
-            case REJECT_TOGGLE:
-                return rejectionService.rejectToggleAction(className, entityId, rejectionRequest.getReason());
-            default:
-                throw new BadRequestException("Invalid rejection action");
-        }
+        return switch (rejectionRequest.getActions()) {
+            case REJECT_CREATE ->
+                    rejectionService.rejectCreateAction(className, entityId, rejectionRequest.getReason());
+            case REJECT_UPDATE ->
+                    rejectionService.rejectUpdateAction(className, entityId, rejectionRequest.getReason());
+            case REJECT_TOGGLE ->
+                    rejectionService.rejectToggleAction(className, entityId, rejectionRequest.getReason());
+            default -> throw new BadRequestException("Invalid rejection action");
+        };
     }
 
     private List<AuthorizationStatus> findAuthorizationStatus(String authorizationType) {

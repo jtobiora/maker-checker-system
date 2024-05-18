@@ -13,6 +13,11 @@ import java.util.Map;
 @Component
 public class ReflectionUtils {
     private static final String JSON_DATA_FIELD = "jsonData";
+
+    /*
+     *  Pulls out the entity from the JSON string stored in 'jsonData' field and then uses it to update the entity passed
+     *  in the argument
+     * */
     public <T extends BaseEntity> void pullEntityFromJson(T entity) {
         //The JSON string is stored in a field named 'jsonData'
         // Find the 'jsonData' field in the class hierarchy (from the entity to its superclasses)
@@ -30,6 +35,10 @@ public class ReflectionUtils {
             throw new AppException("Error while updating entity: " + e.getMessage());
         }
     }
+
+    /*
+     * Finds any field in a class or its superclasses
+     * */
     public static Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
         try {
             return clazz.getDeclaredField(fieldName);
@@ -42,12 +51,17 @@ public class ReflectionUtils {
         }
     }
 
+    /*
+     * Updates the entity using the values pulled out from the JSON string and which is stored in a Map
+     * @entity - the resource being updated
+     * @updateValues - the values to be updated with
+     * */
     public static <T extends BaseEntity> void updateEntity(T entity, Map<String, Object> updateValues) {
         updateValues.forEach((key, value) -> {
             try {
                 Field field = findField(entity.getClass(), key);
                 field.setAccessible(true);
-                if (field.getAnnotation(ExcludeFromUpdate.class) == null && updateValues.containsKey(key) && value != null) {
+                if (field.getAnnotation(ExcludeFromUpdate.class) == null && updateValues.containsKey(key)) {
                     updateField(entity, field, value);
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -56,6 +70,12 @@ public class ReflectionUtils {
         });
     }
 
+    /*
+     * Updates the entity passed in as argument.
+     * @entity - The entity to update
+     * @field - The field of the entity to update
+     * @value - The value to be updated
+     * */
     private static <T extends BaseEntity, V> void updateField(T entity, Field field, V value) throws IllegalAccessException {
         if (field.getType().isEnum()) {
             updateEnumField(entity, field, (String) value);
@@ -65,6 +85,9 @@ public class ReflectionUtils {
         log.info("Field name: {} --- Updated value: {}", field.getName(), value);
     }
 
+    /*
+     * Updates an enum field
+     * */
     private static <T extends BaseEntity> void updateEnumField(T entity, Field field, String value) throws IllegalAccessException {
         Enum<?>[] enumConstants = (Enum<?>[]) field.getType().getEnumConstants();
         for (Enum<?> enumConstant : enumConstants) {

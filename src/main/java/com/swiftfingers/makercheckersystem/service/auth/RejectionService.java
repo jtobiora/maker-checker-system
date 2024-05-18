@@ -1,5 +1,6 @@
-package com.swiftfingers.makercheckersystem.controller.auth;
+package com.swiftfingers.makercheckersystem.service.auth;
 
+import com.swiftfingers.makercheckersystem.repository.AuthRepository;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;

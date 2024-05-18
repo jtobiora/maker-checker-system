@@ -1,4 +1,4 @@
-package com.swiftfingers.makercheckersystem.controller.auth;
+package com.swiftfingers.makercheckersystem.repository;
 
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.AppException;

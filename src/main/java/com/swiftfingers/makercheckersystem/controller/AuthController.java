@@ -1,9 +1,10 @@
-package com.swiftfingers.makercheckersystem.controller.auth;
+package com.swiftfingers.makercheckersystem.controller;
 
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.payload.request.ApprovalRequest;
 import com.swiftfingers.makercheckersystem.payload.request.RejectionRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
+import com.swiftfingers.makercheckersystem.service.auth.AuthService;
 import com.swiftfingers.makercheckersystem.utils.EntityTypeResolver;
 import com.swiftfingers.makercheckersystem.utils.Utils;
 import jakarta.validation.Valid;
