@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.repository;
 
+import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -18,4 +19,6 @@ public interface UserRepository extends JpaRepository <User, Long> {
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);
+
+    Optional<User> findUserByEmailAndIdNot(String email, Long id);
 }

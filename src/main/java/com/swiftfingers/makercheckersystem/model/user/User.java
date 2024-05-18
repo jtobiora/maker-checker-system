@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.model.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
@@ -55,6 +56,7 @@ public class User extends BaseEntity {
     @Column(name = "login_attempt")
     private int loginAttempt;
 
+    @JsonIgnore
     @NotBlank
     @Size(max = 100)
     private String password;

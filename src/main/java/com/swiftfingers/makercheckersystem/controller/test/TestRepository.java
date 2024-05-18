@@ -1,4 +1,4 @@
-package com.swiftfingers.makercheckersystem.controller;
+package com.swiftfingers.makercheckersystem.controller.test;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

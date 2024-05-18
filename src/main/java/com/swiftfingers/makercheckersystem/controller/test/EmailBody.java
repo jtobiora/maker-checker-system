@@ -1,4 +1,4 @@
-package com.swiftfingers.makercheckersystem.controller;
+package com.swiftfingers.makercheckersystem.controller.test;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

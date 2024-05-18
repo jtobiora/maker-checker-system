@@ -1,4 +1,4 @@
-package com.swiftfingers.makercheckersystem.controller;
+package com.swiftfingers.makercheckersystem.controller.test;
 
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import jakarta.persistence.*;

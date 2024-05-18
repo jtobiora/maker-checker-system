@@ -11,6 +11,10 @@ public class SecurityMessages {
     public static final String MODEL_INACTIVE = "%s is not active. Activate to continue!";
     public static final String TWO_FA_SET_UP = "Two factor authentication has been %s for this account.";
 
+    //User Messages
+    public static final String USER_EXISTS = "User with email %s exists";
+    public static final String INVALID_EMAIL = "Email is invalid and cannot receive mails";
+
     //Token Messages
     public static final String _2FA_TOKEN_TIMEOUT = "";
     public static final String _2FA_TOKEN_ERR = "The token entered is incorrect.";
