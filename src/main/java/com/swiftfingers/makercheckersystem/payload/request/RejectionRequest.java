@@ -1,16 +1,13 @@
 package com.swiftfingers.makercheckersystem.payload.request;
 
 import com.swiftfingers.makercheckersystem.enums.ApprovalActions;
+import com.swiftfingers.makercheckersystem.enums.RejectionActions;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class AuthRequest {
+public class RejectionRequest {
     @NotBlank(message = "Authorization Type must be provided")
     private String authorizationType;
 
@@ -18,5 +15,8 @@ public class AuthRequest {
     private String entityName;
 
     @NotNull(message = "Approval actions cannot be empty")
-    private ApprovalActions actions;
+    private RejectionActions actions;
+
+    @NotBlank(message = "Please provide the rejection reason")
+    private String reason;
 }

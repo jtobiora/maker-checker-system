@@ -3,21 +3,24 @@ package com.swiftfingers.makercheckersystem.service.auth;
 import com.swiftfingers.makercheckersystem.enums.ApprovalActions;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.enums.ModelState;
+import com.swiftfingers.makercheckersystem.enums.RejectionActions;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
-import com.swiftfingers.makercheckersystem.payload.request.AuthRequest;
+import com.swiftfingers.makercheckersystem.payload.request.ApprovalRequest;
+import com.swiftfingers.makercheckersystem.payload.request.RejectionRequest;
 import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.utils.EntityTypeResolver;
-import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.AUTHORIZATION_STATES_AVAILABLE;
@@ -43,22 +46,41 @@ public class AuthorizationServiceImpl<T> implements AuthorizationService<T> {
     }
 
     @Override
-    public BaseEntity approve(AuthRequest authRequest, Long entityId)  {
-        String className = EntityTypeResolver.getFullyQualifiedClassName(authRequest.getEntityName());
+    @PreAuthorize("@permissionChecker.hasApprovePermission()")
+    public BaseEntity approve(ApprovalRequest approvalRequest, Long entityId)  {
+        String className = EntityTypeResolver.getFullyQualifiedClassName(approvalRequest.getEntityName());
         log.info("Fully qualified class name: {}", className);
-        List<AuthorizationStatus> authStatusList = findAuthorizationStatus(authRequest.getAuthorizationType());
+        List<AuthorizationStatus> authStatusList = findAuthorizationStatus(approvalRequest.getAuthorizationType());
         if (ObjectUtils.isEmpty(authStatusList)) {
             throw new BadRequestException(String.format(AUTHORIZATION_STATES_AVAILABLE));
         }
 
-        if (authRequest.getActions().equals(ApprovalActions.APPROVE_CREATE)) {
+        if (approvalRequest.getActions().equals(ApprovalActions.APPROVE_CREATE)) {
             return authorizationRepository.approveCreateAction(className, entityId);
-        } else if (authRequest.getActions().equals(ApprovalActions.APPROVE_UPDATE)) {
+        } else if (approvalRequest.getActions().equals(ApprovalActions.APPROVE_UPDATE)) {
             return authorizationRepository.approveUpdateAction(className, entityId);
-        } else if (authRequest.getActions().equals(ApprovalActions.APPROVE_TOGGLE)) {
+        } else if (approvalRequest.getActions().equals(ApprovalActions.APPROVE_TOGGLE)) {
             return authorizationRepository.approveToggleAction(className, entityId);
         }
 
+        return null;
+    }
+
+    @Override
+    public BaseEntity reject(RejectionRequest rejectionRequest, Long entityId) {
+        String klassName = EntityTypeResolver.getFullyQualifiedClassName(rejectionRequest.getEntityName());
+        log.info("Fully qualified class name: {}", klassName);
+        List<AuthorizationStatus> authStatusList = findAuthorizationStatus(rejectionRequest.getAuthorizationType());
+        if (ObjectUtils.isEmpty(authStatusList)) {
+            throw new BadRequestException(String.format(AUTHORIZATION_STATES_AVAILABLE));
+        }
+        if (rejectionRequest.getActions().equals(RejectionActions.REJECT_CREATE)) {
+            return authorizationRepository.rejectCreateAction(klassName, entityId, rejectionRequest.getReason());
+        } else if (rejectionRequest.getActions().equals(RejectionActions.REJECT_UPDATE)) {
+
+        } else if (rejectionRequest.getActions().equals(RejectionActions.REJECT_TOGGLE)) {
+
+        }
         return null;
     }
 

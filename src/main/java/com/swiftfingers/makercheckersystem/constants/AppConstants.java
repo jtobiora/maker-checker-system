@@ -22,5 +22,5 @@ public class AppConstants {
 
     public static final String AUTHORIZATION_STATES_AVAILABLE = "Authorization state must be one of " + AUTHORIZATION_STATES.stream().toList();
 
-    public static final String APPROVAL_ERR_MSG = "Entity Authorization status does not permit Approval";
+    public static final String APPROVAL_ERR_MSG = "Entity Authorization status does not permit Approval/Rejection";
 }

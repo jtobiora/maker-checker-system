@@ -84,19 +84,34 @@ public class AuthorizationRepository {
     /*
      * Approves entity after CREATE action is done
      * */
+//    @Transactional
+//    public <T extends BaseEntity> T approveCreateAction(String entityName, Long id) {
+//        log.info("Approving create requests for entity {}... ", entityName);
+//        try {
+//            Class<T> entityClass = getEntityClass(entityName);
+//            T entity = findEntityById(entityClass, id);
+//
+//            //Authorization status must be INITIALIZED_CREATE for the entity to be approved after creation
+//            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_CREATE);
+//
+//            entity.setAuthorizationStatus(AuthorizationStatus.AUTHORIZED);
+//            entity.setActive(true);
+//            entity.setJsonData(null);
+//
+//            // Save the updated entity
+//            return entityManager.merge(entity);
+//        } catch (ClassNotFoundException e) {
+//            log.error("Error processing request ", e);
+//            throw new BadRequestException("Invalid entity name: " + entityName);
+//        }
+//    }
     @Transactional
     public <T extends BaseEntity> T approveCreateAction(String entityName, Long id) {
         log.info("Approving create requests for entity {}... ", entityName);
         try {
-            Class<T> entityClass = getEntityClass(entityName);
-            T entity = findEntityById(entityClass, id);
+            T entity = findAndValidateEntity(entityName, id, AuthorizationStatus.INITIALIZED_CREATE);
 
-            //Authorization status must be INITIALIZED_CREATE for the entity to be approved after creation
-            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_CREATE);
-
-            entity.setAuthorizationStatus(AuthorizationStatus.AUTHORIZED);
-            entity.setActive(true);
-            entity.setJsonData(null);
+            updateEntityStatus(entity, AuthorizationStatus.AUTHORIZED, true, null);
 
             // Save the updated entity
             return entityManager.merge(entity);
@@ -106,92 +121,37 @@ public class AuthorizationRepository {
         }
     }
 
-//    @Transactional
-//    public <T extends BaseEntity> T approveUpdateAction(String entityName, Long id) {
-//        log.info("Approving update requests for entity {}... ", entityName);
-//        try {
-//            Class<T> entityClass = getEntityClass(entityName);
-//            T entity = findEntityById(entityClass, id);
-//
-//            //Authorization status must be INITIALIZED_UPDATE for the entity to be approved after update
-//            validateAuthorizationStatus(entity, AuthorizationStatus.INITIALIZED_UPDATE);
-//
-//            if (entity != null) {
-//                // Assuming the JSON string is stored in a field named 'jsonData'
-//                // Find the 'jsonData' field in the class hierarchy
-//                //Field jsonField = findJsonDataField(entityClass, "");
-//                Field jsonField = findField(entityClass, JSON_DATA_FIELD);
-//                jsonField.setAccessible(true);
-//                String jsonString = (String) jsonField.get(entity);
-//                if (jsonString != null) {
-//                    Map<String, Object> updateValues = MapperUtils.fromJSON(jsonString, Map.class);
-//                    updateEntity(entity, updateValues);
-//                    return entityManager.merge(entity);
-//                }
-//            }
-//
-//        } catch (ClassNotFoundException ex){
-//            log.error("Class not found ", ex);
-//            throw new BadRequestException("Invalid entity name: " + entityName);
-//        } catch (NoSuchFieldException e) {
-//            log.error("Field does not exist", e);
-//            throw new AppException("Invalid field ");
-//        } catch (IllegalAccessException e) {
-//            log.error("Cannot access field", e);
-//            throw new AppException("Cannot access field");
-//        }
-//
-//        return null;
-//    }
+    @Transactional
+    public <T extends BaseEntity> T rejectCreateAction(String entityName, Long id, String reason) {
+        log.info("Rejecting create requests for entity {}... ", entityName);
+        try {
+            T entity = findAndValidateEntity(entityName, id, AuthorizationStatus.INITIALIZED_CREATE);
 
-//    private <T> void updateEntity(BaseEntity entity, Map<String, Object> updateValues) {
-//        Class<? extends BaseEntity> clazz = entity.getClass();
-//
-//        //manually set the JSON data field to null
-//        entity.setJsonData(null);
-//
-//        updateValues.forEach((key, value) -> {
-//            try {
-//                // Check if the field exists in the entity class or its superclass
-//                Field field = findField(clazz, key);
-//                field.setAccessible(true);
-//                if (field.getAnnotation(ExcludeFromUpdate.class) == null) {
-//                    // Check if the field type is an enum
-//                    if (field.getType().isEnum()) {
-//                        // Get the enum constants
-//                        Enum<?>[] enumConstants = (Enum<?>[]) field.getType().getEnumConstants();
-//                        // Iterate over enum constants to find a match with the value
-//                        for (Enum<?> enumConstant : enumConstants) {
-//                            if (enumConstant.name().equals(value)) {
-//                                field.set(entity, enumConstant);
-//                                break;
-//                            }
-//                        }
-//                    } else {
-//                        // Set the value directly for non-enum fields
-//                        field.set(entity, value);
-//                    }
-//                    log.info("Field name: {} --- Updated value: {}", field.getName(), value);
-//                }
-//            } catch (NoSuchFieldException | IllegalAccessException e) {
-//                log.error("Error while updating entity ", e);
-//            }
-//        });
-//    }
+            updateEntityStatus(entity, AuthorizationStatus.CREATION_REJECTED, false, reason);
 
-    // Method to find any field in the class or its superclass
-//    private Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
-//        try {
-//            return clazz.getDeclaredField(fieldName);
-//        } catch (NoSuchFieldException e) {
-//            // Field not found in the current class, try superclass
-//            if (clazz.getSuperclass() != null) {
-//                return findField(clazz.getSuperclass(), fieldName);
-//            } else {
-//                throw e; // Field not found in the entire class hierarchy
-//            }
-//        }
-//    }
+            // Save the updated entity
+            return entityManager.merge(entity);
+        } catch (ClassNotFoundException e) {
+            log.error("Error processing request ", e);
+            throw new BadRequestException("Invalid entity name: " + entityName);
+        }
+    }
+
+    private <T extends BaseEntity> T findAndValidateEntity(String entityName, Long id, AuthorizationStatus expectedStatus) throws ClassNotFoundException {
+        Class<T> entityClass = getEntityClass(entityName);
+        T entity = findEntityById(entityClass, id);
+        validateAuthorizationStatus(entity, expectedStatus);
+        return entity;
+    }
+
+    private <T extends BaseEntity> void updateEntityStatus(T entity, AuthorizationStatus newStatus, boolean isActive, String reason) {
+        entity.setAuthorizationStatus(newStatus);
+        entity.setActive(isActive);
+        entity.setJsonData(null);
+        if (reason != null) {
+            entity.setReason(reason); // Assuming there's a `setReason` method in `BaseEntity`
+        }
+    }
 
     /*
     * Approves entity after UPDATE action is done

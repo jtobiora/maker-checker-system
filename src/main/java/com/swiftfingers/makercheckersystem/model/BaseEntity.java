@@ -60,5 +60,8 @@ public abstract class BaseEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     private AuthorizationStatus authorizationStatus;
 
+    @Column(name = "reason")
+    private String reason;
+
 }
 

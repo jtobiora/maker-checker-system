@@ -1,14 +1,17 @@
 package com.swiftfingers.makercheckersystem.controller;
 
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
-import com.swiftfingers.makercheckersystem.payload.request.AuthRequest;
+import com.swiftfingers.makercheckersystem.payload.request.ApprovalRequest;
+import com.swiftfingers.makercheckersystem.payload.request.RejectionRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
 import com.swiftfingers.makercheckersystem.service.RoleService;
 import com.swiftfingers.makercheckersystem.service.auth.AuthorizationService;
 import com.swiftfingers.makercheckersystem.utils.EntityTypeResolver;
 import com.swiftfingers.makercheckersystem.utils.Utils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -40,8 +43,14 @@ public class AuthorizationController <T> {
     }
 
     @PostMapping("/approve/{entityId}")
-    public ResponseEntity<AppResponse> approve (@RequestBody AuthRequest authRequest, @PathVariable Long entityId) {
-        BaseEntity approved = authorizationService.approve(authRequest, entityId);
+    public ResponseEntity<AppResponse> approve (@RequestBody @Valid ApprovalRequest approvalRequest, @PathVariable Long entityId) {
+        BaseEntity approved = authorizationService.approve(approvalRequest, entityId);
         return ResponseEntity.ok().body(Utils.buildResponse(HttpStatus.OK, "Entity approved", approved));
+    }
+
+    @PostMapping("/reject/{entityId}")
+    public ResponseEntity<AppResponse> reject (@RequestBody @Valid RejectionRequest rejRequest, @PathVariable Long entityId) {
+        BaseEntity rejected = authorizationService.reject(rejRequest, entityId);
+        return ResponseEntity.ok().body(Utils.buildResponse(HttpStatus.OK, "Entity rejected", rejected));
     }
 }

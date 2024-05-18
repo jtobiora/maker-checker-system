@@ -8,7 +8,6 @@ import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
 import com.swiftfingers.makercheckersystem.payload.EntityToggle;
-import com.swiftfingers.makercheckersystem.payload.request.AuthRequest;
 import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
@@ -19,14 +18,12 @@ import com.swiftfingers.makercheckersystem.utils.Utils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.ROLE_EXISTS;
@@ -120,6 +117,7 @@ public class RoleService {
         }
     }
 
+    //@Secured("ROLE_TOGGLE_ROLE")
     public AppResponse toggleRole (Long id, boolean isActive) {
         Role roleFound = findById(id);
 
