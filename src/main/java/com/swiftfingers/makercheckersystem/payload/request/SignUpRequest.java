@@ -1,6 +1,7 @@
 package com.swiftfingers.makercheckersystem.payload.request;
 
 import com.swiftfingers.makercheckersystem.audits.annotations.Sensitive;
+import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Transient;
@@ -38,4 +39,6 @@ public class SignUpRequest {
     @Size(max = 15, message = "Phone number cannot be more than 15 characters")
     @NotBlank(message = "Phone number cannot be empty")
     private String phoneNumber;
+
+    private TokenDestination tokenDestination;
 }

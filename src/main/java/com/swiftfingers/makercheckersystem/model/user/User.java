@@ -1,6 +1,7 @@
 package com.swiftfingers.makercheckersystem.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
@@ -25,6 +26,7 @@ import java.util.Set;
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ExcludeFromUpdate
     private Long id;
 
     @Size(max = 25, message = "FirstName cannot be more than 25")
@@ -61,9 +63,11 @@ public class User extends BaseEntity {
     @Size(max = 100)
     private String password;
 
+    @JsonProperty("isFirstTimeLogin")
     @Column(name = "first_login")
     private boolean isFirstTimeLogin;
 
+    @JsonProperty("is2FAEnabled")
     @Column(name="2fa_enabled",columnDefinition = "boolean default false")
     private boolean is2FAEnabled;
 
@@ -72,7 +76,7 @@ public class User extends BaseEntity {
     private TokenDestination tokenDestination;
 
     @Transient
+    @ExcludeFromUpdate
     private Set<Role> roles = new HashSet<>();
-
 
 }

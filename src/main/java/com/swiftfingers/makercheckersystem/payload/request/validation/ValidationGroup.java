@@ -8,7 +8,7 @@ import lombok.Data;
 * */
 @Data
 public class ValidationGroup {
-    //Validation Groups for Roles
-    public interface CreateRole{}
-    public interface UpdateRole {}
+    //Validation Groups for All Entities
+    public interface CreateEntity {}
+    public interface UpdateEntity {}
 }

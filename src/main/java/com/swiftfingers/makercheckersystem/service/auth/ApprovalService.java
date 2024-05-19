@@ -28,13 +28,13 @@ public class ApprovalService {
     @Transactional
     public <T extends BaseEntity> T approveUpdateAction(String entityName, Long id) {
         log.info("Approving update request for entity {} with id {}... ", entityName, id);
-        return processApproval(entityName, id, AuthorizationStatus.INITIALIZED_UPDATE, AuthorizationStatus.AUTHORIZED,UPDATE);
+        return processApproval(entityName, id, AuthorizationStatus.INITIALIZED_UPDATE, AuthorizationStatus.AUTHORIZED, UPDATE);
     }
 
     @Transactional
     public <T extends BaseEntity> T approveToggleAction(String entityName, Long id) {
         log.info("Approving toggle request for entity {} with id {}... ", entityName, id);
-        return processApproval(entityName, id, AuthorizationStatus.INITIALIZED_TOGGLE, AuthorizationStatus.AUTHORIZED,TOGGLE);
+        return processApproval(entityName, id, AuthorizationStatus.INITIALIZED_TOGGLE, AuthorizationStatus.AUTHORIZED, TOGGLE);
     }
 
     private <T extends BaseEntity> T processApproval(String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String action) {

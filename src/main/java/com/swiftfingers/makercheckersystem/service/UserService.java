@@ -6,12 +6,11 @@ import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.exceptions.AppException;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
-import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.model.user.User;
-import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
+import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import com.swiftfingers.makercheckersystem.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.ROLE_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.INITIALIZED_CREATE;
 
@@ -63,6 +61,52 @@ public class UserService {
         //send password to user's email address
         emailService.sendPasswordEmail(signUpRequest.getEmail(), generatedPassword);
         return saved;
+    }
+
+    @Secured("ROLE_CREATE_USER")
+    public User updateUser (SignUpRequest request, Long id) {
+        User userFound  = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND,"User")));
+        if (exists(request, id)) {
+            throw new ModelExistsException(String.format(MODEL_EXISTS,"User"));
+        }
+
+//        User userToUpdate = User.builder()
+//                .password(userFound.getPassword())
+//                .firstName(request.getFirstName())
+//                .lastName(request.getLastName())
+//                .email(userFound.getEmail())
+//                .username(userFound.getUsername())
+//                .tokenDestination(request.getTokenDestination())
+//                .is2FAEnabled(userFound.is2FAEnabled())
+//                .firstTimeLogin(userFound.isFirstTimeLogin())
+//                .loginAttempt(userFound.getLoginAttempt())
+//                .phoneNumber(request.getPhoneNumber())
+//                .build();
+//
+//        userToUpdate.setActive(userFound.isActive());
+    //    userToUpdate.setAuthorizationStatus(AUTHORIZED);
+
+        User userToUpdate = new User();
+        userToUpdate.setPassword(userFound.getPassword());
+        userToUpdate.setFirstName(request.getFirstName());
+        userToUpdate.setLastName(request.getLastName());
+        userToUpdate.setEmail(userFound.getEmail());
+        userToUpdate.setUsername(userFound.getUsername());
+        userToUpdate.setTokenDestination(request.getTokenDestination());
+        userToUpdate.set2FAEnabled(userFound.is2FAEnabled());
+        userToUpdate.setFirstTimeLogin(userFound.isFirstTimeLogin());
+        userToUpdate.setLoginAttempt(userFound.getLoginAttempt());
+        userToUpdate.setPhoneNumber(request.getPhoneNumber());
+        userToUpdate.setActive(true);
+
+        String stringifiedUser = MapperUtils.toJSON(userToUpdate);
+        System.out.println(stringifiedUser);
+
+        userFound.setJsonData(stringifiedUser);
+        userFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
+
+        return userRepository.save(userFound);
+
     }
     public AppResponse findAllUsers (Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);

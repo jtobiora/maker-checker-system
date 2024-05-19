@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.controller;
 
+import com.swiftfingers.makercheckersystem.model.user.User;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
@@ -39,5 +40,12 @@ public class UserController {
     public ResponseEntity<AppResponse> createUser (@Valid final @RequestBody SignUpRequest signUpRequest) {
         return ResponseEntity.ok(Utils.buildResponse(HttpStatus.CREATED,
                 "User account was successfully created. Check your mail for your password.", userService.createUser(signUpRequest)));
+    }
+
+    @PostMapping ("/update/{userId}")
+    public ResponseEntity<AppResponse> updateUser (@Valid final @RequestBody SignUpRequest signUpRequest, @PathVariable Long userId) {
+        User user = userService.updateUser(signUpRequest, userId);
+        return ResponseEntity.ok(Utils.buildResponse(HttpStatus.CREATED,
+                "Updated user request has been sent for Authorizer's action", user));
     }
 }

@@ -23,7 +23,6 @@ import com.swiftfingers.makercheckersystem.service.EmailService;
 import com.swiftfingers.makercheckersystem.service.TwoFaTokenService;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
 import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
-import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import com.swiftfingers.makercheckersystem.utils.ValidationUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,7 +45,6 @@ import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.fromJSON;
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJSON;
 import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
-import static com.swiftfingers.makercheckersystem.utils.ValidationUtils.isValidPassword;
 
 
 @Service
