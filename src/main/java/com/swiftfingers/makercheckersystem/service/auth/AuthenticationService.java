@@ -19,7 +19,7 @@ import com.swiftfingers.makercheckersystem.repository.TokenRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.security.AuthPrincipal;
 import com.swiftfingers.makercheckersystem.service.AuthProvider;
-import com.swiftfingers.makercheckersystem.service.EmailService;
+import com.swiftfingers.makercheckersystem.service.EmailSender;
 import com.swiftfingers.makercheckersystem.service.TwoFaTokenService;
 import com.swiftfingers.makercheckersystem.service.jwt.JwtTokenService;
 import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
@@ -60,7 +60,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordHistoryRepository historyRepository;
     private final TokenRepository tokenRepository;
-    private final EmailService emailService;
+    private final EmailSender emailService;
     private final TwoFaTokenService twoFaTokenService;
 
     public AppResponse registerUser(SignUpRequest request) {

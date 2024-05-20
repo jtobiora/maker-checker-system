@@ -12,6 +12,7 @@ import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import com.swiftfingers.makercheckersystem.utils.Utils;
+import com.swiftfingers.makercheckersystem.utils.validations.EmailValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,7 +32,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    private final EmailSender emailSender;
+    private EmailValidator emailValidator;
 
     @Secured("ROLE_CREATE_USER")
     public User createUser (SignUpRequest signUpRequest) {
@@ -46,7 +48,7 @@ public class UserService {
         }
 
         //verify that the email is a valid one and can receive mails
-        if (!emailService.isValidEmail(signUpRequest.getEmail())) {
+        if (!emailValidator.validateEmail(signUpRequest.getEmail()).isValid()) {
             throw new AppException(INVALID_EMAIL);
         }
 
@@ -59,7 +61,7 @@ public class UserService {
         User saved = userRepository.save(user);
 
         //send password to user's email address
-        emailService.sendPasswordEmail(signUpRequest.getEmail(), generatedPassword);
+        emailSender.sendPasswordEmail(signUpRequest.getEmail(), generatedPassword);
         return saved;
     }
 
@@ -100,7 +102,6 @@ public class UserService {
         userToUpdate.setActive(true);
 
         String stringifiedUser = MapperUtils.toJSON(userToUpdate);
-        System.out.println(stringifiedUser);
 
         userFound.setJsonData(stringifiedUser);
         userFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);

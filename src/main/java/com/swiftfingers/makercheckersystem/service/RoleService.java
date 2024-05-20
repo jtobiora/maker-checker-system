@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.service;
 
+import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
 import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
@@ -43,6 +44,7 @@ public class RoleService {
 
 
     @Secured("ROLE_CREATE_ROLE")
+    @CreateOperation
     public AppResponse create(RoleRequest roleRequest) {
         log.debug("Creating roles ...");
         String roleCode = String.format("%s_%s", roleRequest.getName(), roleRequest.getOwnerUserName()).toLowerCase();

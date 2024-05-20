@@ -67,6 +67,11 @@
 			<version>3.3.1</version>
 		</dependency>
 
+		<!-- Apache HttpClient for making HTTP requests -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
 		<!-- AWS -->
 		<!-- AWS SDK for Java - Amazon SNS -->
 		<dependency>
@@ -74,6 +79,7 @@
 			<artifactId>aws-java-sdk</artifactId>
 			<version>1.10.74</version>
 		</dependency>
+
 
 		<!-- For Working with Json Web Tokens (JWT) -->
 		<dependency>
