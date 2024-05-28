@@ -66,12 +66,16 @@
 			<artifactId>dnsjava</artifactId>
 			<version>3.3.1</version>
 		</dependency>
-
-		<!-- Apache HttpClient for making HTTP requests -->
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.68</version>
 		</dependency>
+<!--		&lt;!&ndash; Apache HttpClient for making HTTP requests &ndash;&gt;-->
+<!--		<dependency>-->
+<!--			<groupId>org.apache.httpcomponents</groupId>-->
+<!--			<artifactId>httpclient</artifactId>-->
+<!--		</dependency>-->
 		<!-- AWS -->
 		<!-- AWS SDK for Java - Amazon SNS -->
 		<dependency>

@@ -44,7 +44,7 @@ public class Role extends BaseEntity {
     @Column(name = "role_code", nullable = false, updatable = false ,unique = true)
     private String roleCode;
 
-    @JsonIgnore
+    //@JsonIgnore
     @Column(name = "owner_username", nullable = false, updatable = false ,unique = true)
     private String ownerUserName;
 
