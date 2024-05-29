@@ -4,6 +4,7 @@ import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.exceptions.AppException;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -12,6 +13,9 @@ import java.util.Map;
 @Slf4j
 @Component
 public class ReflectionUtils {
+
+    @Value("${app.key}")
+    private String key;
     private static final String JSON_DATA_FIELD = "jsonData";
 
     /*
@@ -26,8 +30,11 @@ public class ReflectionUtils {
             jsonField.setAccessible(true);
             String jsonString = (String) jsonField.get(entity);
             if (jsonString != null) {
+                //decrypt the encrypted string in 'jsonData' column
+                String decryptedEntity = EncryptionUtil.decrypt(jsonString, key);
+                log.info("Decrypted entity ....{}", decryptedEntity);
                 //convert the values in 'jsonData' field to a Map. The field stores the updated resource
-                Map<String, Object> updateValues = MapperUtils.fromJSON(jsonString, Map.class);
+                Map<String, Object> updateValues = MapperUtils.fromJSON(decryptedEntity, Map.class);
                 updateEntity(entity, updateValues);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {

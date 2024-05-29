@@ -2,6 +2,7 @@ package com.swiftfingers.makercheckersystem.service;
 
 import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
 import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
+import com.swiftfingers.makercheckersystem.controller.test.CryptoUtil;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
@@ -14,11 +15,13 @@ import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleRepository;
+import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import com.swiftfingers.makercheckersystem.utils.Utils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,9 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final RoleAuthorityRepository roleAuthorityRepository;
     private final AuthorizationRepository authorizationRepository;
+
+    @Value("${app.key}")
+    private String key;
 
 
     @Secured("ROLE_CREATE_ROLE")
@@ -93,9 +99,12 @@ public class RoleService {
 
         roleToUpdate.setActive(true);
 
-        String stringifiedRole = MapperUtils.toJSON(roleToUpdate);
+        String roleInJson = MapperUtils.toJSON(roleToUpdate);
 
-        found.setJsonData(stringifiedRole);
+        //encrypt the role
+        String encryptedJsonRole = EncryptionUtil.encrypt(roleInJson, key);
+        
+        found.setJsonData(encryptedJsonRole);
         found.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
 
         Role saved = roleRepository.save(found);

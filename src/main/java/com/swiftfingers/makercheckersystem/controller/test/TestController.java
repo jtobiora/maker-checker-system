@@ -1,32 +1,9 @@
 package com.swiftfingers.makercheckersystem.controller.test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.swiftfingers.makercheckersystem.model.role.Role;
-import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
-import com.swiftfingers.makercheckersystem.payload.response.EmailValidatorResponse;
-import com.swiftfingers.makercheckersystem.service.EmailSender;
-import com.swiftfingers.makercheckersystem.service.redis.LoginTokenService;
 import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
-import com.swiftfingers.makercheckersystem.utils.MapperUtils;
-import com.swiftfingers.makercheckersystem.utils.Utils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
-import java.util.Base64;
-import java.util.Map;
 
 @RequestMapping("/api/test")
 @RequiredArgsConstructor

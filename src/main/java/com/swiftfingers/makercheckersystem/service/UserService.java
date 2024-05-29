@@ -10,11 +10,13 @@ import com.swiftfingers.makercheckersystem.model.user.User;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
+import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import com.swiftfingers.makercheckersystem.utils.Utils;
 import com.swiftfingers.makercheckersystem.utils.validations.EmailValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,8 +34,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailSender emailSender;
-    private EmailValidator emailValidator;
+    private final EmailService emailSender;
+    private final EmailValidator emailValidator;
+    private final NotificationService notificationService;
+
+    @Value("${app.key}")
+    private String key;
 
     @Secured("ROLE_CREATE_USER")
     public User createUser (SignUpRequest signUpRequest) {
@@ -58,11 +64,15 @@ public class UserService {
         user.setAuthorizationStatus(INITIALIZED_CREATE);
         user.setActive(false);
 
-        User saved = userRepository.save(user);
+        //User saved = userRepository.save(user);
 
         //send password to user's email address
-        emailSender.sendPasswordEmail(signUpRequest.getEmail(), generatedPassword);
-        return saved;
+       // emailSender.sendPasswordEmail(signUpRequest.getEmail(), generatedPassword);
+
+        //send message to Authorizers to approve account creation
+        notificationService.sendApprovalNotification("CREATE",1L,"jt.banego@gmail.com","obiora.ugogbuzue@gmail.com", "user");
+        return null;
+        //return saved;
     }
 
     @Secured("ROLE_CREATE_USER")
@@ -72,22 +82,21 @@ public class UserService {
             throw new ModelExistsException(String.format(MODEL_EXISTS,"User"));
         }
 
-//        User userToUpdate = User.builder()
-//                .password(userFound.getPassword())
-//                .firstName(request.getFirstName())
-//                .lastName(request.getLastName())
-//                .email(userFound.getEmail())
-//                .username(userFound.getUsername())
-//                .tokenDestination(request.getTokenDestination())
-//                .is2FAEnabled(userFound.is2FAEnabled())
-//                .firstTimeLogin(userFound.isFirstTimeLogin())
-//                .loginAttempt(userFound.getLoginAttempt())
-//                .phoneNumber(request.getPhoneNumber())
-//                .build();
-//
-//        userToUpdate.setActive(userFound.isActive());
-    //    userToUpdate.setAuthorizationStatus(AUTHORIZED);
+        User userToUpdate = getUser(request, userFound);
 
+        String userInJson = MapperUtils.toJSON(userToUpdate);
+
+        //encrypt the user json string
+        String encryptedJsonUser = EncryptionUtil.encrypt(userInJson, key);
+
+        userFound.setJsonData(encryptedJsonUser);
+        userFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
+
+        return userRepository.save(userFound);
+
+    }
+
+    private static User getUser(SignUpRequest request, User userFound) {
         User userToUpdate = new User();
         userToUpdate.setPassword(userFound.getPassword());
         userToUpdate.setFirstName(request.getFirstName());
@@ -100,15 +109,9 @@ public class UserService {
         userToUpdate.setLoginAttempt(userFound.getLoginAttempt());
         userToUpdate.setPhoneNumber(request.getPhoneNumber());
         userToUpdate.setActive(true);
-
-        String stringifiedUser = MapperUtils.toJSON(userToUpdate);
-
-        userFound.setJsonData(stringifiedUser);
-        userFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
-
-        return userRepository.save(userFound);
-
+        return userToUpdate;
     }
+
     public AppResponse findAllUsers (Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
         return Utils.buildResponse(HttpStatus.OK, "All users", users);

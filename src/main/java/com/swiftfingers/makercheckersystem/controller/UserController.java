@@ -38,8 +38,9 @@ public class UserController {
 
     @PostMapping ("/create")
     public ResponseEntity<AppResponse> createUser (@Valid final @RequestBody SignUpRequest signUpRequest) {
+        User user = userService.createUser(signUpRequest);
         return ResponseEntity.ok(Utils.buildResponse(HttpStatus.CREATED,
-                "User account was successfully created. Check your mail for your password.", userService.createUser(signUpRequest)));
+                "User account was successfully created. Check your mail for your password.", user));
     }
 
     @PostMapping ("/update/{userId}")

@@ -1,70 +1,19 @@
 package com.swiftfingers.makercheckersystem.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Base64;
-import java.util.Map;
 
 /**
  * Created by Obiora on 21-May-2024 at 13:00
  */
 @Service
 public class EncryptionUtil {
-//    private static final String ALGORITHM = "AES";
-//
-//    private final ObjectMapper objectMapper;
-//
-//    @Autowired
-//    public EncryptionUtil(ObjectMapper objectMapper) {
-//        this.objectMapper = objectMapper;
-//    }
-//
-//    private static SecretKey generateKey(String key) throws NoSuchAlgorithmException {
-//        byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-//        MessageDigest sha = MessageDigest.getInstance("SHA-1");
-//        keyBytes = sha.digest(keyBytes);
-//        keyBytes = java.util.Arrays.copyOf(keyBytes, 16); // use only first 128 bits
-//        return new SecretKeySpec(keyBytes, ALGORITHM);
-//    }
-//
-//    private static String encrypt(String data, SecretKey key) throws Exception {
-//        Cipher cipher = Cipher.getInstance(ALGORITHM);
-//        cipher.init(Cipher.ENCRYPT_MODE, key);
-//        byte[] encryptedBytes = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
-//        return Base64.getEncoder().encodeToString(encryptedBytes);
-//    }
-//
-//    private static String decrypt(String encryptedData, SecretKey key) throws Exception {
-//        Cipher cipher = Cipher.getInstance(ALGORITHM);
-//        cipher.init(Cipher.DECRYPT_MODE, key);
-//        byte[] decodedBytes = Base64.getDecoder().decode(encryptedData);
-//        byte[] decryptedBytes = cipher.doFinal(decodedBytes);
-//        return new String(decryptedBytes, StandardCharsets.UTF_8);
-//    }
-//
-//    public String encryptObjectToJsonString(String jsonString, String secretKey) throws Exception {
-//        SecretKey key = generateKey(secretKey);
-//        return encrypt(jsonString, key);
-//    }
-//
-//    public <T> T decryptJsonStringToObject(String encryptedJsonString, String secretKey, Class<T> clazz) throws Exception {
-//        SecretKey key = generateKey(secretKey);
-//        String jsonString = decrypt(encryptedJsonString, key);
-//        return objectMapper.readValue(jsonString, clazz);
-//    }
-
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int KEY_SIZE = 16; // 128 bits
     private static final int TAG_LENGTH_BIT = 128;

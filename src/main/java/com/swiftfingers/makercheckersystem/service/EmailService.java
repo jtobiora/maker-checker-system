@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -13,12 +14,14 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.util.Map;
+
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.TOKEN_SUBJECT;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmailSender {
+public class EmailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
 
@@ -72,6 +75,38 @@ public class EmailSender {
             log.error("Could not send mail ", ex);
         }
     }
+
+    public void sendMailToAuthorizer (String to, String subject, Map<String, Object> templateModel) throws MessagingException {
+        Context context = new Context();
+        context.setVariables(templateModel);
+
+        String htmlContent = templateEngine.process("pending-action-email-template", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setTo(to);
+        helper.setFrom(from);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+    }
+
+    public void sendSimpleMessage(String to, String subject, String text) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
+
+            // Log the email addresses
+            System.out.println("Sending email to: " + to);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 //    public boolean isValidEmail(String email) {
 //        // Check email syntax
 //        if (!isValidEmailSyntax(email)) {
