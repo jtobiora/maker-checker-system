@@ -15,6 +15,7 @@ import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,11 +25,16 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.INVALID_AUTHORIZATION_STATUS;
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.RESOURCE_NOT_FOUND;
+
+
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class AuthRepository {
     private final EntityManager entityManager;
+    private final ReflectionUtils reflectionUtils;
 
     public <T> Page<T> findByAuthStatus(Class<T> entityClass, List<?> values, Pageable pageable) {
         String fieldName = "authorizationStatus";
@@ -74,8 +80,18 @@ public class AuthRepository {
         return entityManager.merge(entity);
     }
 
-    public <T extends BaseEntity> T findAndValidateEntity(String entityName, Long id, AuthorizationStatus expectedStatus) throws ClassNotFoundException {
-        Class<T> entityClass = getEntityClass(entityName);
+    public <T extends BaseEntity> T findAndValidateEntity(String entityName, Long id, AuthorizationStatus expectedStatus) {
+//        Class<T> entityClass = getEntityClass(entityName);
+//        T entity = findEntityById(entityClass, id);
+//        validateAuthorizationStatus(entity, expectedStatus);
+//        return entity;
+        Class<T> entityClass;
+        try {
+            entityClass = getEntityClass(entityName);
+        } catch (ClassNotFoundException e) {
+            throw new ResourceNotFoundException(String.format(RESOURCE_NOT_FOUND,entityName));
+        }
+
         T entity = findEntityById(entityClass, id);
         validateAuthorizationStatus(entity, expectedStatus);
         return entity;
@@ -90,24 +106,9 @@ public class AuthRepository {
         }
     }
 
-    public <T extends BaseEntity> void pullEntityFromJson(T entity) {
-        try {
-            Field jsonField = ReflectionUtils.findField(entity.getClass(), "jsonData");
-            jsonField.setAccessible(true);
-            String jsonString = (String) jsonField.get(entity);
-            if (jsonString != null) {
-                Map<String, Object> updateValues = MapperUtils.fromJSON(jsonString, Map.class);
-                ReflectionUtils.updateEntity(entity, updateValues);
-            }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("Error while updating entity ", e);
-            throw new AppException("Error while updating entity: " + e.getMessage());
-        }
-    }
-
-    private <T extends BaseEntity> void validateAuthorizationStatus(T entity, AuthorizationStatus requiredStatus) {
+    private <T extends BaseEntity> void validateAuthorizationStatus (T entity, AuthorizationStatus requiredStatus) {
         if (!entity.getAuthorizationStatus().equals(requiredStatus)) {
-            throw new BadRequestException("Invalid authorization status");
+            throw new BadRequestException(INVALID_AUTHORIZATION_STATUS);
         }
     }
 

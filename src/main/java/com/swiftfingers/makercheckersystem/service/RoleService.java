@@ -29,6 +29,8 @@ import org.springframework.util.ObjectUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
 import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.ROLE_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_NOT_FOUND;
@@ -42,7 +44,8 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleAuthorityRepository roleAuthorityRepository;
-    private final AuthorizationRepository authorizationRepository;
+    private final NotificationService notificationService;
+    private static final String REFERENCE_TABLE = "role";
 
     @Value("${app.key}")
     private String key;
@@ -50,7 +53,7 @@ public class RoleService {
 
     @Secured("ROLE_CREATE_ROLE")
     @CreateOperation
-    public AppResponse create(RoleRequest roleRequest) {
+    public AppResponse create(RoleRequest roleRequest, String loggedInUser) {
         log.debug("Creating roles ...");
         String roleCode = String.format("%s_%s", roleRequest.getName(), roleRequest.getOwnerUserName()).toLowerCase();
         roleRequest.setRoleCode(roleCode);
@@ -74,14 +77,14 @@ public class RoleService {
 
         addPermissions(roleSaved, roleRequest.getPermissions());
 
-        //TODO: fire email to authorizers to act upon this
+        notificationService.sendForApprovals(CREATE, roleSaved.getId(), loggedInUser, REFERENCE_TABLE);
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
     }
 
 
     @Secured("ROLE_EDIT_ROLE")
     @UpdateOperation
-    public AppResponse update(RoleRequest req, Long id) {
+    public AppResponse update(RoleRequest req, Long id, String loggedInUser) {
         Role found  = roleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND,"Role")));
         if (exists(req, id)) {
             throw new ModelExistsException(String.format(MODEL_EXISTS,"Role"));
@@ -108,6 +111,8 @@ public class RoleService {
 
         Role saved = roleRepository.save(found);
         addPermissions(saved, req.getPermissions());
+
+        notificationService.sendForApprovals(UPDATE, saved.getId(), loggedInUser, REFERENCE_TABLE);
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
     }
 

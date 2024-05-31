@@ -2,18 +2,25 @@ package com.swiftfingers.makercheckersystem.service;
 
 import com.swiftfingers.makercheckersystem.enums.Status;
 import com.swiftfingers.makercheckersystem.model.PendingAction;
+import com.swiftfingers.makercheckersystem.model.permissions.Permission;
+import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
+import com.swiftfingers.makercheckersystem.model.user.User;
 import com.swiftfingers.makercheckersystem.repository.PendingActionRepository;
+import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
+import com.swiftfingers.makercheckersystem.repository.UserRoleRepository;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -28,12 +35,20 @@ public class NotificationService {
     private final PendingActionRepository pendingActionRepository;
     private final EmailService emailService;
     private final Executor executor;
+    private final PermissionService permissionService;
+    private final RoleAuthorityRepository roleAuthorityRepository;
+    private final UserRoleRepository userRoleRepository;
 
     public NotificationService(PendingActionRepository pendingActionRepository, EmailService emailService,
-                               @Qualifier("taskExecutor") Executor executor) {
+                               @Qualifier("taskExecutor") Executor executor, PermissionService permissionService,
+                               RoleAuthorityRepository roleAuthorityRepository,
+                               UserRoleRepository userRoleRepository) {
         this.pendingActionRepository = pendingActionRepository;
         this.emailService = emailService;
         this.executor = executor;
+        this.permissionService = permissionService;
+        this.roleAuthorityRepository = roleAuthorityRepository;
+        this.userRoleRepository = userRoleRepository;
     }
 
     private void sendSingleActionEmail(PendingAction action, String authorizerEmail) throws MessagingException {
@@ -106,5 +121,23 @@ public class NotificationService {
         templateModel.put("actions", batch);
 
         emailService.sendMailToAuthorizer(authorizerEmail, "Pending Actions Notification", templateModel);
+    }
+
+    public void sendForApprovals (String action, Long referenceId, String loggedInUser, String referenceTable) {
+        Optional<User> adminAuthorizer = getAdminAuthorizer();
+        User adminAuthUser = adminAuthorizer.orElseGet(User::new);
+
+        sendApprovalNotification(action, referenceId , adminAuthUser.getEmail(), loggedInUser, referenceTable);
+
+    }
+
+    public Optional<User> getAdminAuthorizer() {
+        List<Permission> allPermissions = permissionService.getAllPermissions();
+        if (!ObjectUtils.isEmpty(allPermissions)) {
+            List<RoleAuthority> roleAuthority = roleAuthorityRepository.findByPermissionCodes(allPermissions.stream().map(Permission::getCode).filter(code -> code.startsWith("APPROVE")).toList());
+            List<Long> roleIds = roleAuthority.stream().map(r -> r.getRole().getId()).toList();
+            return userRoleRepository.findAllUsersByRole(roleIds).stream().findAny();
+        }
+        return Optional.empty();
     }
 }

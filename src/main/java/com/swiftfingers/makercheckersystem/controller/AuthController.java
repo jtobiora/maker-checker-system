@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.controller;
 
+import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.payload.request.ApprovalRequest;
 import com.swiftfingers.makercheckersystem.payload.request.RejectionRequest;
@@ -8,6 +9,7 @@ import com.swiftfingers.makercheckersystem.service.auth.AuthService;
 import com.swiftfingers.makercheckersystem.utils.EntityTypeResolver;
 import com.swiftfingers.makercheckersystem.utils.GeneralUtils;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,5 +54,14 @@ public class AuthController<T> {
     public ResponseEntity<AppResponse> reject(@RequestBody @Valid RejectionRequest rejectionRequest, @PathVariable Long entityId) {
         BaseEntity rejected = authorizationService.reject(rejectionRequest, entityId);
         return ResponseEntity.ok().body(GeneralUtils.buildResponse(HttpStatus.OK, "Entity rejected", rejected));
+    }
+
+    /*
+     * Previews the Updated entity
+     * */
+    @GetMapping("/preview-update/{id}")
+    public ResponseEntity<AppResponse> previewUpdate (@PathVariable Long id, @PathParam("entityName") String entityName,@PathParam("status") AuthorizationStatus status ) {
+        BaseEntity updatedEntity = authorizationService.previewUpdate(id, entityName, status);
+        return ResponseEntity.ok().body(GeneralUtils.buildResponse(HttpStatus.OK, "Entity Update Preview", updatedEntity));
     }
 }

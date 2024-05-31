@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.AUTHORIZATION_STATES_AVAILABLE;
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.FAILED_TO_LOAD_DATA;
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTHORIZED;
 
 @Service
@@ -65,6 +66,12 @@ public class AuthServiceImpl<T> implements AuthService<T> {
                     rejectionService.rejectToggleAction(className, entityId, rejectionRequest.getReason());
             default -> throw new BadRequestException("Invalid rejection action");
         };
+    }
+
+    @Override
+    public BaseEntity previewUpdate(Long id, String entityName, AuthorizationStatus expectedStatus) {
+            String className = EntityTypeResolver.getFullyQualifiedClassName(entityName);
+            return approvalService.getUpdatedEntity(className, id, expectedStatus);
     }
 
     private List<AuthorizationStatus> findAuthorizationStatus(String authorizationType) {

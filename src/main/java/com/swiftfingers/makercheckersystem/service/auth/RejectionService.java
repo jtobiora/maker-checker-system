@@ -35,13 +35,8 @@ public class RejectionService {
     }
 
     private <T extends BaseEntity> T processRejection(String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String reason) {
-        try {
             T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
             authorizationRepository.updateEntityStatus(entity, newStatus, false, reason);
             return authorizationRepository.save(entity);
-        } catch (ClassNotFoundException e) {
-            log.error("Error processing request ", e);
-            throw new BadRequestException("Invalid entity name: " + entityName);
-        }
     }
 }

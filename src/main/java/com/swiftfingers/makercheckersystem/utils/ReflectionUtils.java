@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -22,7 +23,7 @@ public class ReflectionUtils {
      *  Pulls out the entity from the JSON string stored in 'jsonData' field and then uses it to update the entity passed
      *  in the argument
      * */
-    public <T extends BaseEntity> void pullEntityFromJson(T entity) {
+    public <T extends BaseEntity> Map<String, Object> pullEntityFromJson(T entity) {
         //The JSON string is stored in a field named 'jsonData'
         // Find the 'jsonData' field in the class hierarchy (from the entity to its superclasses)
         try {
@@ -34,13 +35,13 @@ public class ReflectionUtils {
                 String decryptedEntity = EncryptionUtil.decrypt(jsonString, key);
                 log.info("Decrypted entity ....{}", decryptedEntity);
                 //convert the values in 'jsonData' field to a Map. The field stores the updated resource
-                Map<String, Object> updateValues = MapperUtils.fromJSON(decryptedEntity, Map.class);
-                updateEntity(entity, updateValues);
+                return MapperUtils.fromJSON(decryptedEntity, Map.class);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             log.error("Error while updating entity ", e);
             throw new AppException("Error while updating entity: " + e.getMessage());
         }
+        return new HashMap<>();
     }
 
     /*

@@ -10,7 +10,7 @@
         }
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 800px; /* Increased max-width for a wider container */
             margin: 20px auto;
             background-color: #ffffff;
             padding: 20px;
@@ -35,9 +35,18 @@
             padding: 12px;
             border: 1px solid #dddddd;
             text-align: left;
+            word-wrap: break-word; /* Ensures long text wraps within the cell */
         }
         .table th {
             background-color: #f2f2f2;
+        }
+        .table td:nth-child(1), /* Action column */
+        .table td:nth-child(2), /* Table column */
+        .table td:nth-child(3), /* Reference ID column */
+        .table td:nth-child(4), /* Status column */
+        .table td:nth-child(5), /* Initiated By column */
+        .table td:nth-child(6) { /* Initiated At column */
+            width: 50%; /* Adjust the width as needed */
         }
         .button {
             display: inline-block;
@@ -73,6 +82,7 @@
                 <th>Action</th>
                 <th>Table</th>
                 <th>Reference ID</th>
+                <th>Status</th>
                 <th>Initiated By</th>
                 <th>Initiated At</th>
                 <th>Action</th>
@@ -83,6 +93,7 @@
                 <td th:text="${action.actionType}"></td>
                 <td th:text="${action.referenceTable}"></td>
                 <td th:text="${action.referenceId}"></td>
+                <td th:text="${action.status}"></td>
                 <td th:text="${action.createdBy}"></td>
                 <td th:text="${action.createdAtFormatted}"></td>
                 <td>

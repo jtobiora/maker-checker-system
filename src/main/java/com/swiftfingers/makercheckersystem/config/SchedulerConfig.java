@@ -17,11 +17,9 @@ public class SchedulerConfig implements SchedulerFactoryBeanCustomizer {
 
     @Bean
     public Trigger hourlyJobTrigger() {
-        CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule("0 0 * * * ?");
         return TriggerBuilder.newTrigger().forJob(hourlyJobDetail())
                 .withIdentity("hourlyTrigger")
-               // .withSchedule(scheduleBuilder)
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 */5 * * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 * * * ?"))
                 .build();
     }
 

@@ -1,5 +1,7 @@
 package com.swiftfingers.makercheckersystem.service.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.repository.AuthRepository;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
@@ -8,7 +10,10 @@ import com.swiftfingers.makercheckersystem.utils.ReflectionUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.*;
 
@@ -38,16 +43,29 @@ public class ApprovalService {
     }
 
     private <T extends BaseEntity> T processApproval(String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String action) {
-        try {
             T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
             if (!action.equals(CREATE)) {
-                reflectionUtils.pullEntityFromJson(entity);
+                Map<String, Object> updateValuesMap = reflectionUtils.pullEntityFromJson(entity);
+                ReflectionUtils.updateEntity(entity, updateValuesMap);
             }
             authorizationRepository.updateEntityStatus(entity, newStatus, true, null);
             return authorizationRepository.save(entity);
-        } catch (ClassNotFoundException e) {
-            log.error("Error processing request ", e);
-            throw new BadRequestException("Invalid entity name: " + entityName);
+    }
+
+    public <T extends BaseEntity> T getUpdatedEntity (String entityName, Long id, AuthorizationStatus expectedStatus) {
+        T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
+        Map<String, Object> updateInJsonMap = reflectionUtils.pullEntityFromJson(entity);
+
+        if (!ObjectUtils.isEmpty(updateInJsonMap)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                // Convert the map to an object of type T
+                return objectMapper.convertValue(updateInJsonMap, (Class<T>) entity.getClass());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Error mapping out updated entity: ", e);
+            }
         }
+
+       throw new ResourceNotFoundException(FAILED_TO_LOAD_DATA);
     }
 }

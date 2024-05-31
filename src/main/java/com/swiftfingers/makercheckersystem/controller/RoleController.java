@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
@@ -18,14 +20,15 @@ public class RoleController {
     private final RoleService roleService;
 
     @PostMapping("/create")
-    public ResponseEntity<AppResponse> createRole (@Validated(ValidationGroup.CreateEntity.class) final @RequestBody RoleRequest roleRequest) {
-        return ResponseEntity.ok(roleService.create(roleRequest));
+    public ResponseEntity<AppResponse> createRole (@Validated(ValidationGroup.CreateEntity.class) final @RequestBody RoleRequest roleRequest,
+                                                   Principal principal) {
+        return ResponseEntity.ok(roleService.create(roleRequest, principal.getName()));
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<AppResponse> updateRole (@Validated(ValidationGroup.UpdateEntity.class)
-                                                       final @RequestBody RoleRequest roleRequest, @PathVariable Long id) {
-        return ResponseEntity.ok(roleService.update(roleRequest, id));
+                                                       final @RequestBody RoleRequest roleRequest, @PathVariable Long id, Principal principal) {
+        return ResponseEntity.ok(roleService.update(roleRequest, id, principal.getName()));
     }
 
     @PutMapping("/toggle/{roleId}")

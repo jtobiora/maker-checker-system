@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.service.auth;
 
+import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.payload.request.ApprovalRequest;
 import com.swiftfingers.makercheckersystem.payload.request.RejectionRequest;
@@ -13,4 +14,6 @@ public interface AuthService <T> {
     BaseEntity approve (ApprovalRequest approvalRequest, Long entityId);
 
     BaseEntity reject(RejectionRequest rejectionRequest, Long entityId);
+
+    BaseEntity previewUpdate (Long id, String entityName, AuthorizationStatus expectedStatus);
 }

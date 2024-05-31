@@ -41,8 +41,8 @@ public class UserController {
     }
 
     @PostMapping ("/update/{userId}")
-    public ResponseEntity<AppResponse> updateUser (@Valid final @RequestBody SignUpRequest signUpRequest, @PathVariable Long userId) {
-        User user = userService.updateUser(signUpRequest, userId);
+    public ResponseEntity<AppResponse> updateUser (@Valid final @RequestBody SignUpRequest signUpRequest, @PathVariable Long userId, Principal principal) {
+        User user = userService.updateUser(signUpRequest, userId, principal.getName());
         return ResponseEntity.ok(GeneralUtils.buildResponse(HttpStatus.CREATED,
                 "Updated user request has been sent for Authorizer's action", user));
     }

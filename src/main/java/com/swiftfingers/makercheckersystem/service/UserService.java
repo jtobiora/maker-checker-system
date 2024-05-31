@@ -33,6 +33,8 @@ import org.springframework.util.ObjectUtils;
 import java.util.List;
 import java.util.Optional;
 
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.INITIALIZED_CREATE;
 
@@ -46,9 +48,7 @@ public class UserService {
     private final EmailService emailSender;
     private final EmailValidator emailValidator;
     private final NotificationService notificationService;
-    private final PermissionService permissionService;
-    private final RoleAuthorityRepository roleAuthorityRepository;
-    private final UserRoleRepository userRoleRepository;
+    private static final String REFERENCE_TABLE = "user";
 
     @Value("${app.key}")
     private String key;
@@ -81,17 +81,13 @@ public class UserService {
         //send password to user's email address
         emailSender.sendPasswordEmail(signUpRequest.getEmail(), generatedPassword);
 
-        Optional<User> adminAuthorizer = getAdminAuthorizer();
-        User adminAuthUser = adminAuthorizer.orElseGet(User::new);
-
-        //send message to Authorizers to approve account creation
-        notificationService.sendApprovalNotification("CREATE", 1L, adminAuthUser.getEmail(), loggedInUser, "user");
-
+        //send message to Authorizers to approve user creation
+        notificationService.sendForApprovals(CREATE, saved.getId(), loggedInUser, REFERENCE_TABLE);
         return saved;
     }
 
-    @Secured("ROLE_CREATE_USER")
-    public User updateUser(SignUpRequest request, Long id) {
+    @Secured("ROLE_EDIT_USER")
+    public User updateUser(SignUpRequest request, Long id, String loggedInUser) {
         User userFound = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "User")));
         if (exists(request, id)) {
             throw new ModelExistsException(String.format(MODEL_EXISTS, "User"));
@@ -107,24 +103,13 @@ public class UserService {
         userFound.setJsonData(encryptedJsonUser);
         userFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
 
-        return userRepository.save(userFound);
+        User updated =  userRepository.save(userFound);
 
-    }
+        //send message to Authorizers to approve user update
+        notificationService.sendForApprovals(UPDATE, updated.getId(), loggedInUser, REFERENCE_TABLE);
 
-    private static User getUser(SignUpRequest request, User userFound) {
-        User userToUpdate = new User();
-        userToUpdate.setPassword(userFound.getPassword());
-        userToUpdate.setFirstName(request.getFirstName());
-        userToUpdate.setLastName(request.getLastName());
-        userToUpdate.setEmail(userFound.getEmail());
-        userToUpdate.setUsername(userFound.getUsername());
-        userToUpdate.setTokenDestination(request.getTokenDestination());
-        userToUpdate.set2FAEnabled(userFound.is2FAEnabled());
-        userToUpdate.setFirstTimeLogin(userFound.isFirstTimeLogin());
-        userToUpdate.setLoginAttempt(userFound.getLoginAttempt());
-        userToUpdate.setPhoneNumber(request.getPhoneNumber());
-        userToUpdate.setActive(true);
-        return userToUpdate;
+        return updated;
+
     }
 
     public AppResponse findAllUsers(Pageable pageable) {
@@ -160,14 +145,20 @@ public class UserService {
         return user;
     }
 
-    public Optional<User> getAdminAuthorizer() {
-        List<Permission> allPermissions = permissionService.getAllPermissions();
-        if (!ObjectUtils.isEmpty(allPermissions)) {
-            List<RoleAuthority> roleAuthority = roleAuthorityRepository.findByPermissionCodes(allPermissions.stream().map(Permission::getCode).filter(code -> code.startsWith("APPROVE")).toList());
-            List<Long> roleIds = roleAuthority.stream().map(r -> r.getRole().getId()).toList();
-            return userRoleRepository.findAllUsersByRole(roleIds).stream().findAny();
-        }
-        return Optional.empty();
+    private static User getUser(SignUpRequest request, User userFound) {
+        User userToUpdate = new User();
+        userToUpdate.setPassword(userFound.getPassword());
+        userToUpdate.setFirstName(request.getFirstName());
+        userToUpdate.setLastName(request.getLastName());
+        userToUpdate.setEmail(userFound.getEmail());
+        userToUpdate.setUsername(userFound.getUsername());
+        userToUpdate.setTokenDestination(request.getTokenDestination());
+        userToUpdate.set2FAEnabled(userFound.is2FAEnabled());
+        userToUpdate.setFirstTimeLogin(userFound.isFirstTimeLogin());
+        userToUpdate.setLoginAttempt(userFound.getLoginAttempt());
+        userToUpdate.setPhoneNumber(request.getPhoneNumber());
+        userToUpdate.setActive(true);
+        return userToUpdate;
     }
 
 }
