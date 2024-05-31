@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.fromJSON;
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJSON;
-import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
+import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.buildResponse;
 
 
 @Service

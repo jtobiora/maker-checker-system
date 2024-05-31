@@ -27,7 +27,7 @@ import java.util.*;
 
 
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJSON;
-import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
+import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.buildResponse;
 
 @RequiredArgsConstructor
 @Slf4j

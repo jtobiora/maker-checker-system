@@ -2,7 +2,6 @@ package com.swiftfingers.makercheckersystem.security;
 
 import com.swiftfingers.makercheckersystem.enums.Message;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
-import com.swiftfingers.makercheckersystem.utils.Utils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

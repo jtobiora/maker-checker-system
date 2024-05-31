@@ -6,7 +6,7 @@ import com.swiftfingers.makercheckersystem.payload.request.RejectionRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.service.auth.AuthService;
 import com.swiftfingers.makercheckersystem.utils.EntityTypeResolver;
-import com.swiftfingers.makercheckersystem.utils.Utils;
+import com.swiftfingers.makercheckersystem.utils.GeneralUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,7 +33,7 @@ public class AuthController<T> {
                                                        @RequestParam(value = "size", defaultValue = "10") int size) {
         Class<T> klass = EntityTypeResolver.resolveEntityType(entityType);
         Page<T> entityState = authorizationService.findEntityState(klass, authType, PageRequest.of(page, size, Sort.by("id").descending()));
-        return ResponseEntity.ok().body(Utils.buildResponse(HttpStatus.OK, "Authorized entities found", entityState));
+        return ResponseEntity.ok().body(GeneralUtils.buildResponse(HttpStatus.OK, "Authorized entities found", entityState));
     }
 
     /*
@@ -42,7 +42,7 @@ public class AuthController<T> {
     @PostMapping("/approve/{entityId}")
     public ResponseEntity<AppResponse> approve(@RequestBody @Valid ApprovalRequest approvalRequest, @PathVariable Long entityId) {
         BaseEntity approved = authorizationService.approve(approvalRequest, entityId);
-        return ResponseEntity.ok().body(Utils.buildResponse(HttpStatus.OK, "Entity approved", approved));
+        return ResponseEntity.ok().body(GeneralUtils.buildResponse(HttpStatus.OK, "Entity approved", approved));
     }
 
     /*
@@ -51,6 +51,6 @@ public class AuthController<T> {
     @PostMapping("/reject/{entityId}")
     public ResponseEntity<AppResponse> reject(@RequestBody @Valid RejectionRequest rejectionRequest, @PathVariable Long entityId) {
         BaseEntity rejected = authorizationService.reject(rejectionRequest, entityId);
-        return ResponseEntity.ok().body(Utils.buildResponse(HttpStatus.OK, "Entity rejected", rejected));
+        return ResponseEntity.ok().body(GeneralUtils.buildResponse(HttpStatus.OK, "Entity rejected", rejected));
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 import static com.swiftfingers.makercheckersystem.utils.MapperUtils.toJSON;
-import static com.swiftfingers.makercheckersystem.utils.Utils.buildResponse;
+import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.buildResponse;
 
 @Service
 @RequiredArgsConstructor

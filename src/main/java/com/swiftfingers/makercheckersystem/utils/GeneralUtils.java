@@ -1,14 +1,15 @@
 package com.swiftfingers.makercheckersystem.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
-public class Utils {
+@Component
+public class GeneralUtils {
 
     public static Boolean getBoolean(Boolean value) {
         return ObjectUtils.isEmpty(value) ? Boolean.FALSE : value;
@@ -29,4 +30,5 @@ public class Utils {
                 .errors(errors)
                 .build();
     }
+
 }

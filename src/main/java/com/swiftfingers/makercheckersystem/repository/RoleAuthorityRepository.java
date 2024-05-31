@@ -5,6 +5,7 @@ import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,4 +24,7 @@ public interface RoleAuthorityRepository extends JpaRepository <RoleAuthority, L
 
     @Query("SELECT ra FROM RoleAuthority ra WHERE ra.role.id = :roleId AND ra.permission.code = :permissionCode")
     Optional<RoleAuthority> findByRoleIdAndAuthorityCode(Long roleId, String permissionCode);
+
+    @Query("SELECT ra FROM RoleAuthority ra WHERE ra.permission.code IN :permissionCodes")
+    List<RoleAuthority> findByPermissionCodes(@Param("permissionCodes") List<String> permissionCodes);
 }

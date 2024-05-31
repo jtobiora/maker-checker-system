@@ -2,7 +2,6 @@ package com.swiftfingers.makercheckersystem.service;
 
 import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
 import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
-import com.swiftfingers.makercheckersystem.controller.test.CryptoUtil;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
@@ -17,7 +16,7 @@ import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
 import com.swiftfingers.makercheckersystem.repository.RoleRepository;
 import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
-import com.swiftfingers.makercheckersystem.utils.Utils;
+import com.swiftfingers.makercheckersystem.utils.GeneralUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +59,8 @@ public class RoleService {
         }
 
         Role role = Role.builder()
-                .authorizationRole(Utils.getBoolean(roleRequest.isAuthorizationRole()))
-                .systemRole(Utils.getBoolean(roleRequest.isSystemRole()))
+                .authorizationRole(GeneralUtils.getBoolean(roleRequest.isAuthorizationRole()))
+                .systemRole(GeneralUtils.getBoolean(roleRequest.isSystemRole()))
                 .description(roleRequest.getDescription())
                 .name(roleRequest.getName())
                 .roleCode(roleCode)
@@ -76,7 +75,7 @@ public class RoleService {
         addPermissions(roleSaved, roleRequest.getPermissions());
 
         //TODO: fire email to authorizers to act upon this
-        return Utils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
+        return GeneralUtils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
     }
 
 
@@ -89,8 +88,8 @@ public class RoleService {
         }
 
         Role roleToUpdate = Role.builder()
-                .authorizationRole(Utils.getBoolean(req.isAuthorizationRole()))
-                .systemRole(Utils.getBoolean(req.isSystemRole()))
+                .authorizationRole(GeneralUtils.getBoolean(req.isAuthorizationRole()))
+                .systemRole(GeneralUtils.getBoolean(req.isSystemRole()))
                 .description(req.getDescription())
                 .name(req.getName())
                 .roleCode(found.getRoleCode())
@@ -103,13 +102,13 @@ public class RoleService {
 
         //encrypt the role
         String encryptedJsonRole = EncryptionUtil.encrypt(roleInJson, key);
-        
+
         found.setJsonData(encryptedJsonRole);
         found.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_UPDATE);
 
         Role saved = roleRepository.save(found);
         addPermissions(saved, req.getPermissions());
-        return Utils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
+        return GeneralUtils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
     }
 
     public void delete(Role role) {
@@ -143,7 +142,7 @@ public class RoleService {
 
         roleRepository.save(roleFound);
 
-        return Utils.buildResponse(HttpStatus.CREATED, "Role status has been toggled and awaiting Authorizer's action", null);
+        return GeneralUtils.buildResponse(HttpStatus.CREATED, "Role status has been toggled and awaiting Authorizer's action", null);
     }
 
     private void addPermissions(Role roleSaved, List<Permission> permissions) {
@@ -162,5 +161,6 @@ public class RoleService {
             }
         }
     }
+
 
 }

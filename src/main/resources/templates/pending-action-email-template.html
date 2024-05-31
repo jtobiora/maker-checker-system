@@ -75,7 +75,7 @@
                 <th>Reference ID</th>
                 <th>Initiated By</th>
                 <th>Initiated At</th>
-                <th>Action Link</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
@@ -83,17 +83,18 @@
                 <td th:text="${action.actionType}"></td>
                 <td th:text="${action.referenceTable}"></td>
                 <td th:text="${action.referenceId}"></td>
-                <td th:text="${action.initiatedBy}"></td>
-                <td th:text="${action.initiatedAt}"></td>
+                <td th:text="${action.createdBy}"></td>
+                <td th:text="${action.createdAtFormatted}"></td>
                 <td>
-                    <a th:href="@{http://yourdomain.com/approve/{id}(id=${action.id})}" class="button">Approve</a>
+                    Authorization
                 </td>
             </tr>
             </tbody>
         </table>
+        <p>Please login to continue <a href="http://localhost:9002/app/v1/login" class="button">Login</a></p>
     </div>
     <div class="footer">
-        <p>&copy; 2024 Your Company. All rights reserved.</p>
+        <p>&copy; 2024 Swiftfingers Nig Ltd. All rights reserved.</p>
     </div>
 </div>
 </body>
