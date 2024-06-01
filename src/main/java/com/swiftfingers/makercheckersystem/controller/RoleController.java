@@ -36,4 +36,10 @@ public class RoleController {
         return ResponseEntity.ok(roleService.toggleRole(roleId, isActive));
     }
 
+    @PostMapping("/assign")
+    public ResponseEntity<AppResponse> assignUserToRole (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId) {
+        AppResponse response = roleService.assignRoleToUser(userId, roleId);
+        return ResponseEntity.ok(response);
+    }
+
 }

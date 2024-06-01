@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.service;
 
+import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.role.Role;
@@ -21,8 +22,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.CHANGE_PASSWORD_MSG;
-import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_NOT_FOUND;
+import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
+import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTHORIZED;
 
 @Slf4j
 @Component
@@ -57,6 +58,10 @@ public class AuthProvider implements AuthenticationProvider {
             return authenticationToken;
         }
 
+        //check if user has been authorized
+        if (!userFound.isActive() || userFound.getAuthorizationStatus() != AUTHORIZED) {
+            throw new BadRequestException(USER_NOT_ACTIVE_OR_AUTHORIZED);
+        }
         passwordManager.checkPassword(password, userFound);
 
         Map<String, Object> authMap = getGrantedAuthorities(userFound);
@@ -75,7 +80,7 @@ public class AuthProvider implements AuthenticationProvider {
 
     private Map<String, Object> getGrantedAuthorities(User userFound) {
         Map<String, Object> objectMap = new HashMap<>();
-        List<Role> roles = userRoleRepository.findAllRolesByUserId(userFound.getId());
+        List<Role> roles = userRoleRepository.findAllRolesByUserId(userFound.getId(), AUTHORIZED);
 
         Set<String> permissionCodeList = new HashSet<>();
         Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
@@ -83,7 +88,7 @@ public class AuthProvider implements AuthenticationProvider {
         // load user Authorities into GrantedAuthority
         if (!ObjectUtils.isEmpty(roles)) {
             for (Role role : roles) {
-                List<Permission> authorities = roleAuthorityRepository.findAllPermissionsByRoleId(role.getId());
+                List<Permission> authorities = roleAuthorityRepository.findAllPermissionsByRoleId(role.getId(), AUTHORIZED);
                 for (Permission permission : authorities) {
                     permissionCodeList.add(permission.getCode());
                     grantedAuthorities.add(new SimpleGrantedAuthority(permission.getCode()));

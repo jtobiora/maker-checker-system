@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.controller;
 
+import com.amazonaws.services.opsworks.model.App;
 import com.swiftfingers.makercheckersystem.model.user.User;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
@@ -46,4 +47,5 @@ public class UserController {
         return ResponseEntity.ok(GeneralUtils.buildResponse(HttpStatus.CREATED,
                 "Updated user request has been sent for Authorizer's action", user));
     }
+
 }

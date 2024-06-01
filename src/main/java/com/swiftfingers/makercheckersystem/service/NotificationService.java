@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.service;
 
+import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.enums.Status;
 import com.swiftfingers.makercheckersystem.model.PendingAction;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
@@ -24,6 +25,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+
+import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTHORIZED;
 
 /**
  * Created by Obiora on 29-May-2024 at 10:22
@@ -134,9 +137,9 @@ public class NotificationService {
     public Optional<User> getAdminAuthorizer() {
         List<Permission> allPermissions = permissionService.getAllPermissions();
         if (!ObjectUtils.isEmpty(allPermissions)) {
-            List<RoleAuthority> roleAuthority = roleAuthorityRepository.findByPermissionCodes(allPermissions.stream().map(Permission::getCode).filter(code -> code.startsWith("APPROVE")).toList());
+            List<RoleAuthority> roleAuthority = roleAuthorityRepository.findByPermissionCodes(allPermissions.stream().map(Permission::getCode).filter(code -> code.startsWith("APPROVE")).toList(), AUTHORIZED);
             List<Long> roleIds = roleAuthority.stream().map(r -> r.getRole().getId()).toList();
-            return userRoleRepository.findAllUsersByRole(roleIds).stream().findAny();
+            return userRoleRepository.findAllUsersByRole(roleIds, AUTHORIZED).stream().findAny();
         }
         return Optional.empty();
     }

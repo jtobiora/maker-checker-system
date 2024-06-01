@@ -15,6 +15,8 @@ public class SecurityMessages {
     public static final String USER_EXISTS = "User with email %s exists";
     public static final String INVALID_EMAIL = "Email is invalid and cannot receive mails";
 
+    public static final String USER_NOT_ACTIVE_OR_AUTHORIZED = "User must be active and authorized to login";
+
     //Token Messages
     public static final String _2FA_TOKEN_TIMEOUT = "";
     public static final String _2FA_TOKEN_ERR = "The token entered is incorrect.";

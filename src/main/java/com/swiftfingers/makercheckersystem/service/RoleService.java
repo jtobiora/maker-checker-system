@@ -3,17 +3,19 @@ package com.swiftfingers.makercheckersystem.service;
 import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
 import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
+import com.swiftfingers.makercheckersystem.exceptions.AppException;
+import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
+import com.swiftfingers.makercheckersystem.model.user.User;
+import com.swiftfingers.makercheckersystem.model.userrole.UserRole;
 import com.swiftfingers.makercheckersystem.payload.EntityToggle;
 import com.swiftfingers.makercheckersystem.payload.request.RoleRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
-import com.swiftfingers.makercheckersystem.repository.AuthorizationRepository;
-import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
-import com.swiftfingers.makercheckersystem.repository.RoleRepository;
+import com.swiftfingers.makercheckersystem.repository.*;
 import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
 import com.swiftfingers.makercheckersystem.utils.GeneralUtils;
@@ -31,10 +33,11 @@ import java.util.stream.Collectors;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
-import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.ROLE_EXISTS;
+import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.*;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_NOT_FOUND;
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.*;
+import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.buildResponse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,6 +48,8 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final RoleAuthorityRepository roleAuthorityRepository;
     private final NotificationService notificationService;
+    private final UserRoleRepository userRoleRepository;
+    private final UserRepository userRepository;
     private static final String REFERENCE_TABLE = "role";
 
     @Value("${app.key}")
@@ -132,6 +137,32 @@ public class RoleService {
         }
     }
 
+    @Secured("ROLE_ASSIGN_ROLE")
+    public AppResponse assignRoleToUser (Long userId, Long roleId) {
+        Role role = findById(roleId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "user")));
+
+        if ((user.getAuthorizationStatus() != AUTHORIZED && !user.isActive())) {
+            throw new BadRequestException(ERR_USER_ROLE_ASSIGN);
+        }
+
+        if ((role.getAuthorizationStatus() != AUTHORIZED && !role.isActive())) {
+            throw new BadRequestException(ERR_ROLE_INACTIVE);
+        }
+
+        //check if the user already has that role assigned
+        if (userRoleRepository.findAllRolesByUserId(user.getId(), AUTHORIZED).isEmpty()) {
+            UserRole userRole = UserRole.
+                    builder().role(role).user(user).build();
+            userRole.setActive(false);
+            userRole.setAuthorizationStatus(INITIALIZED_CREATE);
+            userRoleRepository.save(userRole);
+            return buildResponse(HttpStatus.OK, "Role has been added to user", null);
+        }
+
+        throw new ModelExistsException(DUPLICATE_ROLE_ASSIGNED);
+    }
+
     //@Secured("ROLE_TOGGLE_ROLE")
     public AppResponse toggleRole (Long id, boolean isActive) {
         Role roleFound = findById(id);
@@ -157,7 +188,7 @@ public class RoleService {
             for (Permission p : permissions) {
                 try {
                     RoleAuthority roleAuthority = new RoleAuthority(roleSaved, p);
-                    if (roleAuthorityRepository.findByRoleIdAndAuthorityCode(roleSaved.getId(), p.getCode()).isEmpty()) {
+                    if (roleAuthorityRepository.findByRoleIdAndAuthorityCode(roleSaved.getId(), p.getCode(), AUTHORIZED).isEmpty()) {
                         roleAuthorityRepository.save(roleAuthority);
                     }
                 } catch (Exception e) {

@@ -10,9 +10,11 @@ import com.swiftfingers.makercheckersystem.model.permissions.Permission;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
 import com.swiftfingers.makercheckersystem.model.user.User;
+import com.swiftfingers.makercheckersystem.model.userrole.UserRole;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
+import com.swiftfingers.makercheckersystem.repository.RoleRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRoleRepository;
 import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
@@ -35,8 +37,11 @@ import java.util.Optional;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
+import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.DUPLICATE_ROLE_ASSIGNED;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
+import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTHORIZED;
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.INITIALIZED_CREATE;
+import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.buildResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -114,7 +119,7 @@ public class UserService {
 
     public AppResponse findAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        return GeneralUtils.buildResponse(HttpStatus.OK, "All users", users);
+        return buildResponse(HttpStatus.OK, "All users", users);
     }
 
     public User findById(Long id) {
