@@ -1,7 +1,6 @@
 package com.swiftfingers.makercheckersystem.utils.cron;
 
-import com.swiftfingers.makercheckersystem.repository.PendingActionRepository;
-import com.swiftfingers.makercheckersystem.service.NotificationService;
+import com.swiftfingers.makercheckersystem.service.PendingActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DailyJob extends QuartzJobBean {
 
-    private final NotificationService notificationService;
+    private final PendingActionService notificationService;
 
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {

@@ -1,11 +1,13 @@
 package com.swiftfingers.makercheckersystem.service.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swiftfingers.makercheckersystem.enums.Status;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.repository.AuthRepository;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
+import com.swiftfingers.makercheckersystem.service.PendingActionService;
 import com.swiftfingers.makercheckersystem.utils.ReflectionUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.*;
+import static com.swiftfingers.makercheckersystem.enums.Status.APPROVED;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class ApprovalService {
 
     private final AuthRepository authorizationRepository;
     private final ReflectionUtils reflectionUtils;
+    private final PendingActionService pendingActionService;
     @Transactional
     public <T extends BaseEntity> T approveCreateAction(String entityName, Long id) {
         log.info("Approving create request for entity {} with id {}... ", entityName, id);
@@ -49,7 +53,11 @@ public class ApprovalService {
                 ReflectionUtils.updateEntity(entity, updateValuesMap);
             }
             authorizationRepository.updateEntityStatus(entity, newStatus, true, null);
-            return authorizationRepository.save(entity);
+            T saved = authorizationRepository.save(entity);
+
+            //update the PendingAction table for the item approved
+            pendingActionService.resolvePendingAction(id, APPROVED);
+            return saved;
     }
 
     public <T extends BaseEntity> T getUpdatedEntity (String entityName, Long id, AuthorizationStatus expectedStatus) {

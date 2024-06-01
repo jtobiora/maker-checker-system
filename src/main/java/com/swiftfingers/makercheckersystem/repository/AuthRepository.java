@@ -34,7 +34,6 @@ import static com.swiftfingers.makercheckersystem.constants.AppConstants.RESOURC
 @Slf4j
 public class AuthRepository {
     private final EntityManager entityManager;
-    private final ReflectionUtils reflectionUtils;
 
     public <T> Page<T> findByAuthStatus(Class<T> entityClass, List<?> values, Pageable pageable) {
         String fieldName = "authorizationStatus";
@@ -102,7 +101,7 @@ public class AuthRepository {
         entity.setActive(isActive);
         entity.setJsonData(null);
         if (reason != null) {
-            entity.setReason(reason); // Assuming there's a `setReason` method in `BaseEntity`
+            entity.setReason(reason);
         }
     }
 

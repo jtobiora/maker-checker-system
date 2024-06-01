@@ -6,20 +6,12 @@ import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.exceptions.AppException;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
-import com.swiftfingers.makercheckersystem.model.permissions.Permission;
-import com.swiftfingers.makercheckersystem.model.role.Role;
-import com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority;
 import com.swiftfingers.makercheckersystem.model.user.User;
-import com.swiftfingers.makercheckersystem.model.userrole.UserRole;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
-import com.swiftfingers.makercheckersystem.repository.RoleAuthorityRepository;
-import com.swiftfingers.makercheckersystem.repository.RoleRepository;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
-import com.swiftfingers.makercheckersystem.repository.UserRoleRepository;
 import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
-import com.swiftfingers.makercheckersystem.utils.GeneralUtils;
 import com.swiftfingers.makercheckersystem.utils.validations.EmailValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,16 +22,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-
-import java.util.List;
-import java.util.Optional;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
-import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.DUPLICATE_ROLE_ASSIGNED;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.*;
-import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTHORIZED;
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.INITIALIZED_CREATE;
 import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.buildResponse;
 
@@ -52,7 +38,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailSender;
     private final EmailValidator emailValidator;
-    private final NotificationService notificationService;
+    private final PendingActionService notificationService;
     private static final String REFERENCE_TABLE = "user";
 
     @Value("${app.key}")

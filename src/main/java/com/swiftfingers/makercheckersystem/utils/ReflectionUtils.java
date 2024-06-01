@@ -90,7 +90,7 @@ public class ReflectionUtils {
         } else {
             field.set(entity, value);
         }
-        log.info("Field name: {} --- Updated value: {}", field.getName(), value);
+        log.debug("Field name: {} --- Updated value: {}", field.getName(), value);
     }
 
     /*

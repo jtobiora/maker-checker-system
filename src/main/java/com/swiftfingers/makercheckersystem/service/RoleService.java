@@ -3,7 +3,6 @@ package com.swiftfingers.makercheckersystem.service;
 import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
 import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
-import com.swiftfingers.makercheckersystem.exceptions.AppException;
 import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
@@ -47,7 +46,7 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleAuthorityRepository roleAuthorityRepository;
-    private final NotificationService notificationService;
+    private final PendingActionService notificationService;
     private final UserRoleRepository userRoleRepository;
     private final UserRepository userRepository;
     private static final String REFERENCE_TABLE = "role";
@@ -83,6 +82,7 @@ public class RoleService {
         addPermissions(roleSaved, roleRequest.getPermissions());
 
         notificationService.sendForApprovals(CREATE, roleSaved.getId(), loggedInUser, REFERENCE_TABLE);
+
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
     }
 
@@ -118,6 +118,7 @@ public class RoleService {
         addPermissions(saved, req.getPermissions());
 
         notificationService.sendForApprovals(UPDATE, saved.getId(), loggedInUser, REFERENCE_TABLE);
+
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
     }
 

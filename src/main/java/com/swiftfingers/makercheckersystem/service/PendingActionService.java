@@ -1,6 +1,5 @@
 package com.swiftfingers.makercheckersystem.service;
 
-import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.enums.Status;
 import com.swiftfingers.makercheckersystem.model.PendingAction;
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
@@ -12,6 +11,7 @@ import com.swiftfingers.makercheckersystem.repository.UserRoleRepository;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,7 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTHORIZED;
+import static com.swiftfingers.makercheckersystem.enums.Status.PENDING;
 
 /**
  * Created by Obiora on 29-May-2024 at 10:22
@@ -34,7 +35,7 @@ import static com.swiftfingers.makercheckersystem.enums.AuthorizationStatus.AUTH
 
 @Service
 @Slf4j
-public class NotificationService {
+public class PendingActionService {
     private final PendingActionRepository pendingActionRepository;
     private final EmailService emailService;
     private final Executor executor;
@@ -42,10 +43,10 @@ public class NotificationService {
     private final RoleAuthorityRepository roleAuthorityRepository;
     private final UserRoleRepository userRoleRepository;
 
-    public NotificationService(PendingActionRepository pendingActionRepository, EmailService emailService,
-                               @Qualifier("taskExecutor") Executor executor, PermissionService permissionService,
-                               RoleAuthorityRepository roleAuthorityRepository,
-                               UserRoleRepository userRoleRepository) {
+    public PendingActionService(PendingActionRepository pendingActionRepository, EmailService emailService,
+                                @Qualifier("taskExecutor") Executor executor, PermissionService permissionService,
+                                RoleAuthorityRepository roleAuthorityRepository,
+                                UserRoleRepository userRoleRepository) {
         this.pendingActionRepository = pendingActionRepository;
         this.emailService = emailService;
         this.executor = executor;
@@ -76,7 +77,7 @@ public class NotificationService {
                         .actionType(actionType)
                         .referenceId(referenceId)
                         .authorizerEmail(authorizerEmail)
-                        .status(Status.PENDING)
+                        .status(PENDING)
                         .referenceTable(referenceTable)
                         .build();
 
@@ -94,9 +95,10 @@ public class NotificationService {
 
     }
 
+    @Async
     public void notifyAuthorizers() {
         log.info("Running a job to notify authorizers of pending actions ");
-        List<PendingAction> pendingActions = pendingActionRepository.findAllByStatus(Status.PENDING);
+        List<PendingAction> pendingActions = pendingActionRepository.findAllByStatus(PENDING);
 
         // Format createdAt field in each PendingAction to the desired format
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
@@ -142,5 +144,13 @@ public class NotificationService {
             return userRoleRepository.findAllUsersByRole(roleIds, AUTHORIZED).stream().findAny();
         }
         return Optional.empty();
+    }
+
+    public void resolvePendingAction (Long refId, Status status) {
+        PendingAction pendingAction = pendingActionRepository.findByReferenceIdAndStatus(refId, PENDING).orElse(null);
+        if (!ObjectUtils.isEmpty(pendingAction)) {
+            pendingAction.setStatus(status);
+            pendingActionRepository.save(pendingAction);
+        }
     }
 }

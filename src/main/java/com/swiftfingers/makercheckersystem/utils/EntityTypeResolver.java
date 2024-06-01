@@ -18,7 +18,9 @@ public class EntityTypeResolver {
         // Define mappings here
         classMap.put("role", "com.swiftfingers.makercheckersystem.model.role.Role");
         classMap.put("user", "com.swiftfingers.makercheckersystem.model.user.User");
-
+        classMap.put("user_role", "com.swiftfingers.makercheckersystem.model.userrole.UserRole");
+        classMap.put("permission", "com.swiftfingers.makercheckersystem.model.permissions.Permission");
+        classMap.put("role_authority", "com.swiftfingers.makercheckersystem.model.roleauthority.RoleAuthority");
     }
 
     public static <T> Class<T> resolveEntityType(String entityName) {
