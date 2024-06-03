@@ -96,7 +96,7 @@ public class ReflectionUtils {
     /*
      * Updates an enum field
      * */
-    private static <T extends BaseEntity> void updateEnumField(T entity, Field field, String value) throws IllegalAccessException {
+    private static <T extends BaseEntity> void updateEnumField (T entity, Field field, String value) throws IllegalAccessException {
         Enum<?>[] enumConstants = (Enum<?>[]) field.getType().getEnumConstants();
         for (Enum<?> enumConstant : enumConstants) {
             if (enumConstant.name().equals(value)) {

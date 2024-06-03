@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
@@ -151,20 +152,62 @@ public class RoleService {
             throw new BadRequestException(ERR_ROLE_INACTIVE);
         }
 
-        //check if the user already has that role assigned
+        //check if the user already has a role assigned
         if (userRoleRepository.findAllRolesByUserId(user.getId(), AUTHORIZED).isEmpty()) {
+            //the user does not have a role. So assign them one
             UserRole userRole = UserRole.
                     builder().role(role).user(user).build();
             userRole.setActive(false);
             userRole.setAuthorizationStatus(INITIALIZED_CREATE);
             userRoleRepository.save(userRole);
+
+            //send notifications
+
+
             return buildResponse(HttpStatus.OK, "Role has been added to user", null);
         }
-
         throw new ModelExistsException(DUPLICATE_ROLE_ASSIGNED);
     }
 
-    //@Secured("ROLE_TOGGLE_ROLE")
+    public AppResponse updateAssignedRoleToUser (Long userId, Long roleId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "user")));
+        Role newRoleTobeAssigned = findById(roleId);
+        if ((user.getAuthorizationStatus() != AUTHORIZED && !user.isActive())) {
+            throw new BadRequestException(ERR_USER_ROLE_ASSIGN);
+        }
+
+        if ((newRoleTobeAssigned.getAuthorizationStatus() != AUTHORIZED && !newRoleTobeAssigned.isActive())) {
+            throw new BadRequestException(ERR_ROLE_INACTIVE);
+        }
+
+        Optional<UserRole> userRoleOptional = userRoleRepository.findUserRoleByUserId(userId, AUTHORIZED);
+
+        if (userRoleOptional.isPresent()) {
+            UserRole userRoleFound = userRoleOptional.get();
+
+            UserRole userRoleUpdated = new UserRole();
+            userRoleUpdated.setRole(newRoleTobeAssigned);
+            userRoleUpdated.setUser(userRoleFound.getUser());
+
+            String roleInJson = MapperUtils.toJSON(userRoleUpdated);
+
+            //encrypt the role
+            String encryptedJsonRole = EncryptionUtil.encrypt(roleInJson, key);
+
+            userRoleFound.setAuthorizationStatus(INITIALIZED_UPDATE);
+            userRoleFound.setJsonData(encryptedJsonRole);
+
+            userRoleRepository.save(userRoleFound);
+
+            //send notifications
+
+           buildResponse(HttpStatus.OK, "User role has been added and awaiting authorization.", null);
+        }
+
+        return null;
+    }
+
+    @Secured("ROLE_TOGGLE_ROLE")
     public AppResponse toggleRole (Long id, boolean isActive) {
         Role roleFound = findById(id);
 

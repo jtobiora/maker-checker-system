@@ -42,4 +42,11 @@ public class RoleController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/assign")
+    public ResponseEntity<AppResponse> updateAssignedRoleToUser (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId) {
+        AppResponse response = roleService.updateAssignedRoleToUser(userId, roleId);
+        return ResponseEntity.ok(response);
+    }
+
+
 }
