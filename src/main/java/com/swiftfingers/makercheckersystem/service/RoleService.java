@@ -50,7 +50,8 @@ public class RoleService {
     private final PendingActionService notificationService;
     private final UserRoleRepository userRoleRepository;
     private final UserRepository userRepository;
-    private static final String REFERENCE_TABLE = "role";
+    private static final String ROLE_REF_TABLE = "role";
+    private static final String USER_ROLE_REF_TABLE = "user_role";
 
     @Value("${app.key}")
     private String key;
@@ -82,7 +83,7 @@ public class RoleService {
 
         addPermissions(roleSaved, roleRequest.getPermissions());
 
-        notificationService.sendForApprovals(CREATE, roleSaved.getId(), loggedInUser, REFERENCE_TABLE);
+        notificationService.sendForApprovals(CREATE, roleSaved.getId(), loggedInUser, ROLE_REF_TABLE);
 
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Role has been saved ", roleSaved);
     }
@@ -118,7 +119,7 @@ public class RoleService {
         Role saved = roleRepository.save(found);
         addPermissions(saved, req.getPermissions());
 
-        notificationService.sendForApprovals(UPDATE, saved.getId(), loggedInUser, REFERENCE_TABLE);
+        notificationService.sendForApprovals(UPDATE, saved.getId(), loggedInUser, ROLE_REF_TABLE);
 
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Updated role has been sent for Authorizer's action", null);
     }
@@ -140,7 +141,8 @@ public class RoleService {
     }
 
     @Secured("ROLE_ASSIGN_ROLE")
-    public AppResponse assignRoleToUser (Long userId, Long roleId) {
+    @CreateOperation
+    public AppResponse assignRoleToUser (Long userId, Long roleId, String loggedInUser) {
         Role role = findById(roleId);
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "user")));
 
@@ -159,17 +161,19 @@ public class RoleService {
                     builder().role(role).user(user).build();
             userRole.setActive(false);
             userRole.setAuthorizationStatus(INITIALIZED_CREATE);
-            userRoleRepository.save(userRole);
+            UserRole savedUserRole = userRoleRepository.save(userRole);
 
             //send notifications
+            notificationService.sendForApprovals(CREATE, savedUserRole.getId(), loggedInUser, USER_ROLE_REF_TABLE);
 
-
-            return buildResponse(HttpStatus.OK, "Role has been added to user", null);
+            return buildResponse(HttpStatus.OK, USER_ROLE_ASSIGNED, null);
         }
         throw new ModelExistsException(DUPLICATE_ROLE_ASSIGNED);
     }
 
-    public AppResponse updateAssignedRoleToUser (Long userId, Long roleId) {
+    @Secured("ROLE_ASSIGN_ROLE")
+    @UpdateOperation
+    public AppResponse updateAssignedRoleToUser (Long userId, Long roleId, String loggedInUser) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "user")));
         Role newRoleTobeAssigned = findById(roleId);
         if ((user.getAuthorizationStatus() != AUTHORIZED && !user.isActive())) {
@@ -197,14 +201,15 @@ public class RoleService {
             userRoleFound.setAuthorizationStatus(INITIALIZED_UPDATE);
             userRoleFound.setJsonData(encryptedJsonRole);
 
-            userRoleRepository.save(userRoleFound);
+            UserRole updated = userRoleRepository.save(userRoleFound);
 
             //send notifications
+            notificationService.sendForApprovals(UPDATE, updated.getId(), loggedInUser, USER_ROLE_REF_TABLE);
 
-           buildResponse(HttpStatus.OK, "User role has been added and awaiting authorization.", null);
+           return buildResponse(HttpStatus.OK, USER_ROLE_ASSIGNED, null);
         }
 
-        return null;
+        throw new ResourceNotFoundException(String.format(USER_ROLE_NOT_FOUND));
     }
 
     @Secured("ROLE_TOGGLE_ROLE")
@@ -227,12 +232,16 @@ public class RoleService {
 
     private void addPermissions(Role roleSaved, List<Permission> permissions) {
         if (!ObjectUtils.isEmpty(permissions)) {
+            //check if the permission is already part of the RoleAuthority
+
             List<String> permissionCodes = permissions.stream().map(Permission::getCode).collect(Collectors.toList());
            // roleAuthorityRepository.deleteAllByRoleIdAndPermissionCodeNotIn(roleSaved.getId(), permissionCodes); //TODO: come back later and review
             for (Permission p : permissions) {
                 try {
-                    RoleAuthority roleAuthority = new RoleAuthority(roleSaved, p);
                     if (roleAuthorityRepository.findByRoleIdAndAuthorityCode(roleSaved.getId(), p.getCode(), AUTHORIZED).isEmpty()) {
+                        RoleAuthority roleAuthority = new RoleAuthority(roleSaved, p);
+                        roleAuthority.setAuthorizationStatus(AUTHORIZED);
+                        roleAuthority.setActive(true);
                         roleAuthorityRepository.save(roleAuthority);
                     }
                 } catch (Exception e) {

@@ -40,8 +40,8 @@ public class RejectionService {
     }
 
     private <T extends BaseEntity> T processRejection(String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String reason) {
-            T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
-            authorizationRepository.updateEntityStatus(entity, newStatus, false, reason);
+        T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
+        authorizationRepository.updateEntityStatus(entity, newStatus, false, reason);
         T saved = authorizationRepository.save(entity);
 
         //update the PendingAction table for the item approved

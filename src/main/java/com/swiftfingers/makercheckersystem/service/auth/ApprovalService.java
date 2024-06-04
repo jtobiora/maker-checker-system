@@ -1,11 +1,9 @@
 package com.swiftfingers.makercheckersystem.service.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swiftfingers.makercheckersystem.enums.Status;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.repository.AuthRepository;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
-import com.swiftfingers.makercheckersystem.exceptions.BadRequestException;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.service.PendingActionService;
 import com.swiftfingers.makercheckersystem.utils.ReflectionUtils;
@@ -13,8 +11,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.*;
@@ -46,18 +47,40 @@ public class ApprovalService {
         return processApproval(entityName, id, AuthorizationStatus.INITIALIZED_TOGGLE, AuthorizationStatus.AUTHORIZED, TOGGLE);
     }
 
-    private <T extends BaseEntity> T processApproval(String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String action) {
-            T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
-            if (!action.equals(CREATE)) {
-                Map<String, Object> updateValuesMap = reflectionUtils.pullEntityFromJson(entity);
-                ReflectionUtils.updateEntity(entity, updateValuesMap);
-            }
-            authorizationRepository.updateEntityStatus(entity, newStatus, true, null);
-            T saved = authorizationRepository.save(entity);
+//    private <T extends BaseEntity> T processApproval(String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String action) {
+//            T entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
+//            if (!action.equals(CREATE)) {
+//                Map<String, Object> updateValuesMap = reflectionUtils.pullEntityFromJson(entity);
+//                entity = getUpdatedEntity(entityName, id, expectedStatus);
+//                ReflectionUtils.updateEntity(entity, updateValuesMap);
+//            }
+//            authorizationRepository.updateEntityStatus(entity, newStatus, true, null);
+//            T saved = authorizationRepository.save(entity);
+//
+//            //update the PendingAction table for the item approved
+//            pendingActionService.resolvePendingAction(id, APPROVED);
+//            return saved;
+//    }
 
-            //update the PendingAction table for the item approved
-            pendingActionService.resolvePendingAction(id, APPROVED);
-            return saved;
+    private <T extends BaseEntity> T processApproval (String entityName, Long id, AuthorizationStatus expectedStatus, AuthorizationStatus newStatus, String action) {
+        T entity;
+        if (action.equals(CREATE)) {
+            entity = authorizationRepository.findAndValidateEntity(entityName, id, expectedStatus);
+        } else {
+            entity = getUpdatedEntity(entityName, id, expectedStatus);
+        }
+
+//        if (!action.equals(CREATE)) {
+//            Map<String, Object> updateValuesMap = reflectionUtils.pullEntityFromJson(entity);
+//            ReflectionUtils.updateEntity(entity, updateValuesMap);
+//        }
+
+        authorizationRepository.updateEntityStatus(entity, newStatus, true, null);
+        T saved = authorizationRepository.save(entity);
+
+        //update the PendingAction table for the item approved
+        pendingActionService.resolvePendingAction(id, APPROVED);
+        return saved;
     }
 
     public <T extends BaseEntity> T getUpdatedEntity (String entityName, Long id, AuthorizationStatus expectedStatus) {
@@ -67,9 +90,17 @@ public class ApprovalService {
         if (!ObjectUtils.isEmpty(updateInJsonMap)) {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
-                // Convert the map to an object of type T
-                return objectMapper.convertValue(updateInJsonMap, (Class<T>) entity.getClass());
-            } catch (IllegalArgumentException e) {
+                // Convert the map to a JSON string
+                String jsonString = objectMapper.writeValueAsString(updateInJsonMap);
+
+                // Deserialize the JSON string into an object of type T
+                T updatedEntity = objectMapper.readValue(jsonString, (Class<T>) entity.getClass());
+
+                // Retain the necessary fields (e.g., id) from the original entity
+                ReflectionUtils.retainNecessaryFields(entity, updatedEntity);
+
+                return updatedEntity;
+            } catch (IOException e) {
                 throw new RuntimeException("Error mapping out updated entity: ", e);
             }
         }

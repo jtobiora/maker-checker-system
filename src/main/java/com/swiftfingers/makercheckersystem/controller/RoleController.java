@@ -37,14 +37,14 @@ public class RoleController {
     }
 
     @PostMapping("/assign")
-    public ResponseEntity<AppResponse> assignUserToRole (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId) {
-        AppResponse response = roleService.assignRoleToUser(userId, roleId);
+    public ResponseEntity<AppResponse> assignUserToRole (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId, Principal principal) {
+        AppResponse response = roleService.assignRoleToUser(userId, roleId, principal.getName());
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/assign")
-    public ResponseEntity<AppResponse> updateAssignedRoleToUser (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId) {
-        AppResponse response = roleService.updateAssignedRoleToUser(userId, roleId);
+    public ResponseEntity<AppResponse> updateAssignedRoleToUser (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId,  Principal principal) {
+        AppResponse response = roleService.updateAssignedRoleToUser(userId, roleId,principal.getName());
         return ResponseEntity.ok(response);
     }
 

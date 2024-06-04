@@ -1,5 +1,6 @@
 package com.swiftfingers.makercheckersystem.model.userrole;
 
+import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
 import com.swiftfingers.makercheckersystem.model.role.Role;
 import com.swiftfingers.makercheckersystem.model.user.User;
@@ -21,6 +22,7 @@ public class UserRole extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ExcludeFromUpdate
     private Long id;
 
     @NotNull(message = "User must be present")

@@ -9,4 +9,8 @@ public class RolePermissionsMessages {
     public static final String ERR_USER_ROLE_ASSIGN = "User must be activated and Authorized to be given a role.";
 
     public static final String ERR_ROLE_INACTIVE = "Role which is not Activated and Authorized cannot be assigned.";
+
+    public static final String USER_ROLE_NOT_FOUND = "No user exists with the role";
+
+    public static final String USER_ROLE_ASSIGNED = "User role has been added and awaiting authorization";
 }

@@ -53,7 +53,7 @@ public abstract class BaseEntity implements Serializable {
     private String createdBy;
 
     @LastModifiedBy
-    @Column(name = "updated_by", nullable = false, updatable = false)
+    @Column(name="updated_by", length=50, nullable=true, columnDefinition="varchar(50) default 'system@swiftfingers.com'")
     private String updatedBy;
 
     @Column(name = "active", nullable = false)

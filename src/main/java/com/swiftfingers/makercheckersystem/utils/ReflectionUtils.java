@@ -84,7 +84,7 @@ public class ReflectionUtils {
      * @field - The field of the entity to update
      * @value - The value to be updated
      * */
-    private static <T extends BaseEntity, V> void updateField(T entity, Field field, V value) throws IllegalAccessException {
+    private static <T extends BaseEntity, V> void updateField (T entity, Field field, V value) throws IllegalAccessException {
         if (field.getType().isEnum()) {
             updateEnumField(entity, field, (String) value);
         } else {
@@ -103,6 +103,28 @@ public class ReflectionUtils {
                 field.set(entity, enumConstant);
                 break;
             }
+        }
+    }
+
+    public static <T extends BaseEntity> void retainNecessaryFields(T source, T target) {
+        try {
+            // Copy the ID
+            Field idField = findField(source.getClass(), "id");
+            idField.setAccessible(true);
+            idField.set(target, idField.get(source));
+
+            // Add any other necessary fields to be retained from the source entity
+            // Example: Copy createdAt, createdBy, etc.
+            // Field createdAtField = findField(source.getClass(), "createdAt");
+            // createdAtField.setAccessible(true);
+            // createdAtField.set(target, createdAtField.get(source));
+            //
+            // Field createdByField = findField(source.getClass(), "createdBy");
+            // createdByField.setAccessible(true);
+            // createdByField.set(target, createdByField.get(source));
+
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            log.error("Error retaining necessary fields from source to target", e);
         }
     }
 }
