@@ -109,9 +109,16 @@ public class ReflectionUtils {
     public static <T extends BaseEntity> void retainNecessaryFields(T source, T target) {
         try {
             // Copy the ID
-            Field idField = findField(source.getClass(), "id");
-            idField.setAccessible(true);
-            idField.set(target, idField.get(source));
+//            Field idField = findField(source.getClass(), "id");
+//            idField.setAccessible(true);
+//            idField.set(target, idField.get(source));
+
+//            // Copy the password
+//            Field passwordField = findField(source.getClass(), "password");
+//            if (passwordField != null) {
+//                passwordField.setAccessible(true);
+//                passwordField.set(target, passwordField.get(source));
+//            }
 
             // Add any other necessary fields to be retained from the source entity
             // Example: Copy createdAt, createdBy, etc.
@@ -123,7 +130,7 @@ public class ReflectionUtils {
             // createdByField.setAccessible(true);
             // createdByField.set(target, createdByField.get(source));
 
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+        } catch (Exception e) {
             log.error("Error retaining necessary fields from source to target", e);
         }
     }

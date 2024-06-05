@@ -13,4 +13,9 @@ public class RolePermissionsMessages {
     public static final String USER_ROLE_NOT_FOUND = "No user exists with the role";
 
     public static final String USER_ROLE_ASSIGNED = "User role has been added and awaiting authorization";
+    public static final String USER_ROLE_UNASSIGNED = "User has been removed from '%s' role";
+
+    public static final String ROLE_AUTHORITY_NOT_FOUND = "No role exists with these permissions: %s";
+
+    public static final String PERMISSIONS_REMOVED = "Permissions '%s' have been removed from role";
 }

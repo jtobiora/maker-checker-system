@@ -58,7 +58,7 @@ public class User extends BaseEntity {
     @Column(name = "login_attempt")
     private int loginAttempt;
 
-    @JsonIgnore
+    //@JsonIgnore
     @NotBlank
     @Size(max = 100)
     private String password;

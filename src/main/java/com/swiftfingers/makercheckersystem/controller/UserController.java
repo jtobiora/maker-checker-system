@@ -38,14 +38,14 @@ public class UserController {
     public ResponseEntity<AppResponse> createUser (@Valid final @RequestBody SignUpRequest signUpRequest, Principal principal) {
         User user = userService.createUser(signUpRequest, principal.getName());
         return ResponseEntity.ok(GeneralUtils.buildResponse(HttpStatus.CREATED,
-                "User account was successfully created. Check your mail for your password.", user));
+                "User account was successfully created. Check your mail for your password.", null));
     }
 
     @PostMapping ("/update/{userId}")
     public ResponseEntity<AppResponse> updateUser (@Valid final @RequestBody SignUpRequest signUpRequest, @PathVariable Long userId, Principal principal) {
         User user = userService.updateUser(signUpRequest, userId, principal.getName());
         return ResponseEntity.ok(GeneralUtils.buildResponse(HttpStatus.CREATED,
-                "Updated user request has been sent for Authorizer's action", user));
+                "Updated user request has been sent for Authorizer's action", null));
     }
 
 }

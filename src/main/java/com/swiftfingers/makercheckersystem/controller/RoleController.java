@@ -32,8 +32,8 @@ public class RoleController {
     }
 
     @PutMapping("/toggle/{roleId}")
-    public ResponseEntity<AppResponse> toggleRole (final @PathVariable Long roleId, @PathParam("toggle") boolean isActive) {
-        return ResponseEntity.ok(roleService.toggleRole(roleId, isActive));
+    public ResponseEntity<AppResponse> toggleRole (final @PathVariable Long roleId, @PathParam("toggle") boolean isActive, Principal principal) {
+        return ResponseEntity.ok(roleService.toggleRole(roleId, isActive, principal.getName()));
     }
 
     @PostMapping("/assign")
@@ -45,6 +45,12 @@ public class RoleController {
     @PutMapping("/assign")
     public ResponseEntity<AppResponse> updateAssignedRoleToUser (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId,  Principal principal) {
         AppResponse response = roleService.updateAssignedRoleToUser(userId, roleId,principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/unassign")
+    public ResponseEntity<AppResponse> removeRoleFromUser (@PathParam("userId") Long userId, @PathParam("roleId") Long roleId) {
+        AppResponse response = roleService.removeRoleFromUser(userId, roleId);
         return ResponseEntity.ok(response);
     }
 

@@ -27,12 +27,12 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
-import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
+import static com.swiftfingers.makercheckersystem.constants.AppConstants.*;
 import static com.swiftfingers.makercheckersystem.constants.RolePermissionsMessages.*;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_EXISTS;
 import static com.swiftfingers.makercheckersystem.constants.SecurityMessages.MODEL_NOT_FOUND;
@@ -98,6 +98,7 @@ public class RoleService {
         }
 
         Role roleToUpdate = Role.builder()
+                .id(found.getId())
                 .authorizationRole(GeneralUtils.getBoolean(req.isAuthorizationRole()))
                 .systemRole(GeneralUtils.getBoolean(req.isSystemRole()))
                 .description(req.getDescription())
@@ -190,6 +191,7 @@ public class RoleService {
             UserRole userRoleFound = userRoleOptional.get();
 
             UserRole userRoleUpdated = new UserRole();
+            userRoleUpdated.setId(userRoleFound.getId());
             userRoleUpdated.setRole(newRoleTobeAssigned);
             userRoleUpdated.setUser(userRoleFound.getUser());
 
@@ -212,8 +214,16 @@ public class RoleService {
         throw new ResourceNotFoundException(String.format(USER_ROLE_NOT_FOUND));
     }
 
+    @Secured("ROLE_ASSIGN_ROLE")
+    public AppResponse removeRoleFromUser (Long userId, Long roleId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "user")));
+        userRoleRepository.deleteUserRoleByUser(user);
+        Role role = findById(roleId);
+        return buildResponse(HttpStatus.OK, String.format(USER_ROLE_UNASSIGNED,role.getName()), null);
+    }
+
     @Secured("ROLE_TOGGLE_ROLE")
-    public AppResponse toggleRole (Long id, boolean isActive) {
+    public AppResponse toggleRole (Long id, boolean isActive, String loggedInUser) {
         Role roleFound = findById(id);
 
         EntityToggle tog = new EntityToggle();
@@ -225,7 +235,9 @@ public class RoleService {
         roleFound.setJsonData(stringifiedRole);
         roleFound.setAuthorizationStatus(AuthorizationStatus.INITIALIZED_TOGGLE);
 
-        roleRepository.save(roleFound);
+        Role saved = roleRepository.save(roleFound);
+           //send notifications
+        notificationService.sendForApprovals(TOGGLE, saved.getId(), loggedInUser, ROLE_REF_TABLE);
 
         return GeneralUtils.buildResponse(HttpStatus.CREATED, "Role status has been toggled and awaiting Authorizer's action", null);
     }

@@ -9,6 +9,7 @@ import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
 import com.swiftfingers.makercheckersystem.model.user.User;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
+import com.swiftfingers.makercheckersystem.payload.response.UserResponseDto;
 import com.swiftfingers.makercheckersystem.repository.UserRepository;
 import com.swiftfingers.makercheckersystem.utils.EncryptionUtil;
 import com.swiftfingers.makercheckersystem.utils.MapperUtils;
@@ -22,6 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.function.Function;
 
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.CREATE;
 import static com.swiftfingers.makercheckersystem.constants.AppConstants.UPDATE;
@@ -105,11 +109,17 @@ public class UserService {
 
     public AppResponse findAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        return buildResponse(HttpStatus.OK, "All users", users);
+//        Page<User> mappedUser = users.map(user -> {
+//            user.setPassword("###");
+//            return user;
+//        });
+        return buildResponse(HttpStatus.OK, "All users", transformUserPage(users));
     }
 
     public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(SecurityMessages.MODEL_NOT_FOUND, "User")));
+       User user =  userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(SecurityMessages.MODEL_NOT_FOUND, "User")));
+       user.setPassword("###");
+       return user;
     }
 
     public boolean exists(SignUpRequest request, Long id) {
@@ -138,6 +148,7 @@ public class UserService {
 
     private static User getUser(SignUpRequest request, User userFound) {
         User userToUpdate = new User();
+        userToUpdate.setId(userFound.getId());
         userToUpdate.setPassword(userFound.getPassword());
         userToUpdate.setFirstName(request.getFirstName());
         userToUpdate.setLastName(request.getLastName());
@@ -150,6 +161,26 @@ public class UserService {
         userToUpdate.setPhoneNumber(request.getPhoneNumber());
         userToUpdate.setActive(true);
         return userToUpdate;
+    }
+
+    public Page<UserResponseDto> transformUserPage (Page<User> userPage) {
+
+        Function<User, UserResponseDto> mapper = user -> UserResponseDto.builder()
+                .id(user.getId())
+                .active(user.isActive())
+                .authorizationStatus(user.getAuthorizationStatus())
+                .isFirstTimeLogin(user.isFirstTimeLogin())
+                .lastName(user.getLastName())
+                .loginAttempt(user.getLoginAttempt())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .firstName(user.getFirstName())
+                .username(user.getUsername())
+                .tokenDestination(user.getTokenDestination())
+                .is2FAEnabled(user.is2FAEnabled())
+                .build();
+
+        return userPage.map(mapper);
     }
 
 }

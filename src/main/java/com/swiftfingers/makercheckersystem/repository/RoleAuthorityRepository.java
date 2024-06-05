@@ -20,6 +20,11 @@ public interface RoleAuthorityRepository extends JpaRepository <RoleAuthority, L
 
     @Transactional
     @Modifying
+    @Query("DELETE FROM RoleAuthority ra WHERE ra.role.id = :roleId AND ra.permission.code IN :permCodes")
+    void deleteRoleAuthorityByRoleIdAndPermissionCodes(Long roleId, List<String> permCodes);
+
+    @Transactional
+    @Modifying
     @Query("DELETE FROM RoleAuthority ra WHERE ra.role.id = :roleId AND ra.permission.code NOT IN :ids")
     void deleteAllByRoleIdAndPermissionCodeNotIn(Long roleId, List<String> ids);
 

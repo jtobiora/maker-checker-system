@@ -1,7 +1,10 @@
 package com.swiftfingers.makercheckersystem.controller;
 
 import com.swiftfingers.makercheckersystem.model.permissions.Permission;
+import com.swiftfingers.makercheckersystem.payload.request.PermissionsDto;
+import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import com.swiftfingers.makercheckersystem.service.PermissionService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,5 +45,10 @@ public class PermissionController {
     public void deletePermission(@PathVariable String code) {
         // This will delete an existing permission and invalidate the cache
         permissionService.deletePermissionByCode(code);
+    }
+
+    @PutMapping("/remove")
+    public ResponseEntity<AppResponse> removePermissionsFromRole(@RequestBody PermissionsDto dto) {
+        return ResponseEntity.ok(permissionService.removePermissionFromRole(dto));
     }
 }
