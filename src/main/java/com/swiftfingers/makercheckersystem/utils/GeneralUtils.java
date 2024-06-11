@@ -5,6 +5,7 @@ import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -29,6 +30,10 @@ public class GeneralUtils {
                 .responseCode(responseCode)
                 .errors(errors)
                 .build();
+    }
+
+    public static String nullSafeString(String str) {
+        return StringUtils.isEmpty(str) ? "" : str.trim();
     }
 
 }

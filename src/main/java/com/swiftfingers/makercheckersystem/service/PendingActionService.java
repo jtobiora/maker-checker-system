@@ -92,7 +92,6 @@ public class PendingActionService {
                 SecurityContextHolder.clearContext();
             }
         }, executor);
-
     }
 
     @Async
@@ -133,13 +132,14 @@ public class PendingActionService {
         User adminAuthUser = adminAuthorizer.orElseGet(User::new);
 
         sendApprovalNotification(action, referenceId , adminAuthUser.getEmail(), loggedInUser, referenceTable);
-
     }
 
     public Optional<User> getAdminAuthorizer() {
         List<Permission> allPermissions = permissionService.getAllPermissions();
         if (!ObjectUtils.isEmpty(allPermissions)) {
-            List<RoleAuthority> roleAuthority = roleAuthorityRepository.findByPermissionCodes(allPermissions.stream().map(Permission::getCode).filter(code -> code.startsWith("APPROVE")).toList(), AUTHORIZED);
+            List<RoleAuthority> roleAuthority = roleAuthorityRepository.findByPermissionCodes(allPermissions.stream()
+                    .map(Permission::getCode)
+                    .filter(code -> code.startsWith("APPROVE")).toList(), AUTHORIZED);
             List<Long> roleIds = roleAuthority.stream().map(r -> r.getRole().getId()).toList();
             return userRoleRepository.findAllUsersByRole(roleIds, AUTHORIZED).stream().findAny();
         }

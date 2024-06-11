@@ -48,4 +48,10 @@ public class UserController {
                 "Updated user request has been sent for Authorizer's action", null));
     }
 
+    @PostMapping("/search")
+    public ResponseEntity<?> search (@RequestBody User user, @RequestParam(value = "page", defaultValue = "0") int page,
+                                     @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(userService.search(user, PageRequest.of(page, size, Sort.by("id").descending())));
+    }
+
 }

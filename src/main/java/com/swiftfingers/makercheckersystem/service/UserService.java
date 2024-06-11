@@ -6,6 +6,7 @@ import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.exceptions.AppException;
 import com.swiftfingers.makercheckersystem.exceptions.ModelExistsException;
 import com.swiftfingers.makercheckersystem.exceptions.ResourceNotFoundException;
+import com.swiftfingers.makercheckersystem.model.user.QUser;
 import com.swiftfingers.makercheckersystem.model.user.User;
 import com.swiftfingers.makercheckersystem.payload.request.SignUpRequest;
 import com.swiftfingers.makercheckersystem.payload.response.AppResponse;
@@ -18,11 +19,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.function.Function;
@@ -128,6 +132,16 @@ public class UserService {
         } else {
             return userRepository.findUserByEmailAndIdNot(request.getEmail(), id).isPresent();
         }
+    }
+
+    public Page<UserResponseDto> search (User user, PageRequest p) {
+        QUser qUser = QUser.user;
+        if (ObjectUtils.isEmpty(user)) {
+            Page<User> users=  userRepository.findAll(qUser.isNotNull(), p);
+            return transformUserPage(users);
+        }
+        Page<User> u = userRepository.findAll(user.predicates(), p);
+        return  transformUserPage(u);
     }
 
     private User buildUserEntity(SignUpRequest signUpRequest, String generatedPassword) {

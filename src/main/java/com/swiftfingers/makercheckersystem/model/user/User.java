@@ -2,6 +2,7 @@ package com.swiftfingers.makercheckersystem.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.querydsl.core.BooleanBuilder;
 import com.swiftfingers.makercheckersystem.audits.annotations.ExcludeFromUpdate;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
 import com.swiftfingers.makercheckersystem.model.BaseEntity;
@@ -15,6 +16,9 @@ import org.hibernate.annotations.NaturalId;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.swiftfingers.makercheckersystem.utils.GeneralUtils.nullSafeString;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -78,5 +82,26 @@ public class User extends BaseEntity {
     @Transient
     @ExcludeFromUpdate
     private Set<Role> roles = new HashSet<>();
+
+    public BooleanBuilder predicates() {
+        QUser qUser = QUser.user;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (!isBlank(this.getPhoneNumber())) {
+            builder.and(qUser.phoneNumber.containsIgnoreCase(nullSafeString(this.getPhoneNumber())));
+        }
+        if (!isBlank(this.getFirstName())) {
+            builder.and(qUser.firstName.containsIgnoreCase(nullSafeString(this.getFirstName())));
+        }
+        if (!isBlank(this.getLastName())) {
+            builder.and(qUser.lastName.containsIgnoreCase(nullSafeString(this.getLastName())));
+        }
+        if (!isBlank(this.getEmail())) {
+            builder.and(qUser.email.containsIgnoreCase(nullSafeString(this.getEmail())));
+        }
+        if (!isBlank(this.getUsername())) {
+            builder.and(qUser.username.containsIgnoreCase(nullSafeString(this.getUsername())));
+        }
+        return builder;
+    }
 
 }
