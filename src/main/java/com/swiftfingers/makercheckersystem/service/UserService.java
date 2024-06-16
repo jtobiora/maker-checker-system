@@ -1,5 +1,7 @@
 package com.swiftfingers.makercheckersystem.service;
 
+import com.swiftfingers.makercheckersystem.audits.annotations.CreateOperation;
+import com.swiftfingers.makercheckersystem.audits.annotations.UpdateOperation;
 import com.swiftfingers.makercheckersystem.constants.SecurityMessages;
 import com.swiftfingers.makercheckersystem.enums.AuthorizationStatus;
 import com.swiftfingers.makercheckersystem.enums.TokenDestination;
@@ -53,6 +55,7 @@ public class UserService {
     private String key;
 
     @Secured("ROLE_CREATE_USER")
+    @CreateOperation
     public User createUser(SignUpRequest signUpRequest, String loggedInUser) {
         log.info("Creating user with username {}.....", signUpRequest.getEmail());
         if (exists(signUpRequest, null)) {
@@ -86,6 +89,7 @@ public class UserService {
     }
 
     @Secured("ROLE_EDIT_USER")
+    @UpdateOperation
     public User updateUser(SignUpRequest request, Long id, String loggedInUser) {
         User userFound = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format(MODEL_NOT_FOUND, "User")));
         if (exists(request, id)) {

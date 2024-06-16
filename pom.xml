@@ -86,6 +86,13 @@
 			<version>${querydsl.version}</version>
 			<classifier>jakarta</classifier>
 		</dependency>
+
+		<!-- Websockets -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
 <!--		&lt;!&ndash; Apache HttpClient for making HTTP requests &ndash;&gt;-->
 <!--		<dependency>-->
 <!--			<groupId>org.apache.httpcomponents</groupId>-->
