@@ -8,6 +8,7 @@ import com.swiftfingers.makercheckersystem.model.audits.AuditTrail;
 import com.swiftfingers.makercheckersystem.service.AuditTrailService;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
@@ -25,17 +26,17 @@ public class AuditTrailAspect {
 
     private final ObjectMapper objectMapper;
 
-    @Before("@annotation(createOperation)")
+    @AfterReturning("@annotation(createOperation)")
     public void logCreateOperation(JoinPoint joinPoint, CreateOperation createOperation) {
         logOperation(joinPoint, CREATE);
     }
 
-    @Before("@annotation(updateOperation)")
+    @AfterReturning("@annotation(updateOperation)")
     public void logUpdateOperation(JoinPoint joinPoint, UpdateOperation updateOperation) {
         logOperation(joinPoint, UPDATE);
     }
 
-    @Before("@annotation(deleteOperation)")
+    @AfterReturning("@annotation(deleteOperation)")
     public void logDeleteOperation(JoinPoint joinPoint, DeleteOperation deleteOperation) {
         logOperation(joinPoint, DELETE);
     }
