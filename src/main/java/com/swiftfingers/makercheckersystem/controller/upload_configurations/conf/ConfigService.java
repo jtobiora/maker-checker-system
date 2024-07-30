@@ -2,6 +2,7 @@ package com.swiftfingers.makercheckersystem.controller.upload_configurations.con
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swiftfingers.makercheckersystem.controller.upload_configurations.classes.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
  * Created by Obiora on 30-Jul-2024 at 10:44
  */
 @Service
+@Slf4j
 public class ConfigService {
 
 
@@ -50,7 +52,7 @@ public class ConfigService {
             }
             // Create the file with default content
             objectMapper.writeValue(file, defaultContent);
-            System.out.println("Created default config file: " + file.getAbsolutePath());
+            log.info("Created default config file: " + file.getAbsolutePath());
         }
     }
 
@@ -68,7 +70,7 @@ public class ConfigService {
         if (file.exists()) {
             applicationSetting = objectMapper.readValue(file, ApplicationSetting.class);
         } else {
-            System.err.println("Configuration file not found: " + file.getAbsolutePath());
+            log.warn("Configuration file not found: {}",  file.getAbsolutePath());
             // Optionally, load default values or handle accordingly
         }
     }
@@ -78,8 +80,7 @@ public class ConfigService {
         if (file.exists()) {
             socialAuthSettings = objectMapper.readValue(file, SocialAuthenticationSettings.class);
         } else {
-            System.err.println("Configuration file not found: " + file.getAbsolutePath());
-            // Optionally, load default values or handle accordingly
+            log.warn("Configuration file not found: ", file.getAbsolutePath());
         }
     }
 
@@ -88,8 +89,7 @@ public class ConfigService {
         if (file.exists()) {
             applicationInfo = objectMapper.readValue(file, ApplicationInfo.class);
         } else {
-            System.err.println("Configuration file not found: " + file.getAbsolutePath());
-            // Optionally, load default values or handle accordingly
+            log.warn("Configuration file not found: ", file.getAbsolutePath());
         }
     }
 
@@ -98,8 +98,7 @@ public class ConfigService {
         if (file.exists()) {
             maintenanceMode = objectMapper.readValue(file, MaintenanceMode.class);
         } else {
-            System.err.println("Configuration file not found: " + file.getAbsolutePath());
-            // Optionally, load default values or handle accordingly
+            log.warn("Configuration file not found: ", file.getAbsolutePath());
         }
     }
 
@@ -108,8 +107,7 @@ public class ConfigService {
         if (file.exists()) {
             socialSettings = objectMapper.readValue(file, SocialSettings.class);
         } else {
-            System.err.println("Configuration file not found: " + file.getAbsolutePath());
-            // Optionally, load default values or handle accordingly
+            log.warn("Configuration file not found: ", file.getAbsolutePath());
         }
     }
 
@@ -118,8 +116,7 @@ public class ConfigService {
         if (file.exists()) {
             advancedSettings = objectMapper.readValue(file, AdvancedSettings.class);
         } else {
-            System.err.println("Configuration file not found: " + file.getAbsolutePath());
-            // Optionally, load default values or handle accordingly
+            log.warn("Configuration file not found: ", file.getAbsolutePath());
         }
     }
 
