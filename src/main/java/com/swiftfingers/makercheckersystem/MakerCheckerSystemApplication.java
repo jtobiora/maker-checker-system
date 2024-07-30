@@ -1,16 +1,12 @@
 package com.swiftfingers.makercheckersystem;
 
-import com.swiftfingers.makercheckersystem.controller.upload_configurations.conf.ConfigService;
-import com.swiftfingers.makercheckersystem.controller.upload_configurations.conf.FileWatcher;
+import com.swiftfingers.makercheckersystem.demos.upload_configurations.conf.ConfigService;
+import com.swiftfingers.makercheckersystem.demos.upload_configurations.conf.FileWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.io.IOException;
 

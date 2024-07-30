@@ -31,6 +31,7 @@ public class SecurityConfig {
             "/api/v1/auth/**",
             "/api/admin/email-settings/**",
             "/api/config/**",
+            "/api/notifications/**",
             "/api/test/**",
             "/v2/api-docs",
             "/v3/api-docs",
