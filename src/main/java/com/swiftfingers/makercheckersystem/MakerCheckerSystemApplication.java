@@ -29,7 +29,8 @@ public class MakerCheckerSystemApplication implements CommandLineRunner{
 	@Override
 	public void run(String... args) throws Exception {
 		try {
-			configService.loadConfigurations();  // Ensure configurations are loaded
+			//configService.loadConfigurations();  // Ensure configurations are loaded
+			configService.loadAllConfigurations();
 			fileWatcher.startWatching();
 		} catch (IOException e) {
 			log.error("Error starting file watcher: " + e.getMessage());
