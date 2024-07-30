@@ -152,8 +152,11 @@ public class FileWatcher {
             throw new IOException("Config path is not a directory: " + path.toAbsolutePath());
         }
 
-        WatchService watchService = FileSystems.getDefault().newWatchService();
+        WatchService watchService = FileSystems.getDefault().newWatchService(); //Creates a WatchService instance to monitor file changes.
+
+       //Registers the directory with the WatchService to monitor modifications (ENTRY_MODIFY) to files in that directory.
         WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+
         keyMap.put(watchKey, path);
         log.info("Started watching directory: " + path.toAbsolutePath());
 
@@ -161,7 +164,8 @@ public class FileWatcher {
         while (true) {
             WatchKey key;
             try {
-                key = watchService.take(); // Blocking call
+               // Blocking call that waits for a key to be available. This key represents a change event.
+                key = watchService.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
